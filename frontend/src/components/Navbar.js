@@ -1,0 +1,42 @@
+// import React from 'react';
+// import { Link } from 'react-router-dom';
+// import { MessageSquare, Rocket, User } from 'lucide-react';
+
+// const Navbar = () => {
+//   return (
+//     <nav className="flex items-center justify-between px-10 py-4 bg-white border-b border-gray-100 sticky top-0 z-50">
+//       <div className="flex items-center space-x-10">
+//         {/* Logo */}
+//         <Link to="/" className="flex items-center space-x-2">
+//           <div className="bg-indigo-600 p-1.5 rounded-lg text-white">
+//             <Rocket size={20} />
+//           </div>
+//           <span className="text-xl font-bold text-gray-900 tracking-tighter">HireHive</span>
+//         </Link>
+
+//         {/* Nav Links - Added About and Contact here */}
+//         <div className="hidden md:flex items-center space-x-8 text-gray-600 font-semibold text-sm">
+//           <Link to="/jobs" className="hover:text-indigo-600">Find Work</Link>
+//           <Link to="/about" className="hover:text-indigo-600 text-gray-500">About Us</Link>
+//           <Link to="/contact" className="hover:text-indigo-600 text-gray-500">Contact Us</Link>
+//         </div>
+//       </div>
+
+//       {/* Right Side Actions */}
+//       <div className="flex items-center space-x-6">
+//         <Link to="/messages" className="flex items-center space-x-2 text-gray-600 hover:text-indigo-600 font-semibold text-sm">
+//           <MessageSquare size={20} />
+//           <span>Messages</span>
+//         </Link>
+//         <Link to="/register" className="bg-indigo-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-indigo-700 transition text-sm">
+//           Join
+//         </Link>
+//         <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-400 hover:bg-gray-200 cursor-pointer">
+//           <User size={20} />
+//         </div>
+//       </div>
+//     </nav>
+//   );
+// };
+
+// export default Navbar;

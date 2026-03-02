@@ -1,0 +1,5 @@
+SELECT p.id, p.bidAmount, p.coverLetter, j.title AS job_title, u.username AS freelancer
+FROM Proposals p
+JOIN Jobs j ON p.jobId = j.id
+JOIN Users u ON p.freelancerId = u.id
+ORDER BY p.createdAt DESC LIMIT 1;

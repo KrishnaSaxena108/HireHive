@@ -9,6 +9,10 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'clientId', 
         as: 'client' 
       });
+      this.hasMany(models.Proposal, { 
+      foreignKey: 'jobId', 
+      as: 'proposals' 
+    });
     }
   }
   Job.init({
