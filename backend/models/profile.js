@@ -10,13 +10,21 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      // define association here
+      this.belongsTo(models.User, {
+        foreignKey: 'userId',
+        as: 'user'
+      });
     }
   }
   Profile.init({
     bio: DataTypes.TEXT,
     skills: DataTypes.STRING,
     hourlyRate: DataTypes.DECIMAL,
+    portfolioUrl: {
+      type: DataTypes.STRING,
+      defaultValue: null,
+      comment: 'URL to portfolio file or document'
+    },
     userId: DataTypes.INTEGER
   }, {
     sequelize,

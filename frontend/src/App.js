@@ -1,9 +1,8 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import { Briefcase, User, MessageSquare } from 'lucide-react';
-import Navbar from './components/Navbar'; // Import the new Navbar
+import NotificationBell from './components/NotificationBell';
 import Home from './components/Home';
-import JobFeed from './components/JobFeed';
 import SignUp from './components/SignUp';
 import PostJob from './components/PostJob';
 import Login from './components/Login';
@@ -11,6 +10,8 @@ import FreelancerDashboard from './components/FreelancerDashboard';
 import ClientDashboard from './components/ClientDashboard';
 import CreateProfile from './components/CreateProfile';
 import Messages from './components/Messages';
+import SubmitReview from './components/SubmitReview';
+import AdvancedSearch from './components/AdvancedSearch';
 import About from './pages/About'; // Make sure the path matches where you saved the file
 import Contact from './pages/Contact';
 
@@ -33,6 +34,10 @@ function App() {
             <Link to="/messages" className="hover:text-indigo-600 transition flex items-center gap-1">
               <MessageSquare size={18} /> Messages
             </Link>
+            <Link to="/submit-review" className="hover:text-indigo-600 transition">
+              Leave Review
+            </Link>
+            <NotificationBell />
             <Link to="/signup" className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition">
               Join
             </Link>
@@ -45,18 +50,8 @@ function App() {
           {/* Feature #1: Home Page */}
           <Route path="/" element={<Home />} />
 
-          {/* Feature #3: Browse Jobs Page */}
-          <Route path="/browse" element={
-            <main className="max-w-6xl mx-auto py-12">
-              <div className="flex justify-between items-center px-6 mb-8">
-                <h3 className="text-2xl font-bold text-slate-800">Latest Opportunities</h3>
-                <Link to="/post-job" className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-indigo-700">
-                  Post a Job
-                </Link>
-              </div>
-              <JobFeed />
-            </main>
-          } />
+          {/* Feature #3: Browse Jobs Page - Advanced Search */}
+          <Route path="/browse" element={<AdvancedSearch />} />
 
           {/* Feature #6: Sign Up Page */}
           <Route path="/signup" element={<SignUp />} />
@@ -70,8 +65,7 @@ function App() {
 <Route path="/messages" element={<Messages />} />
 <Route path="/about" element={<About />} />
   <Route path="/contact" element={<Contact />} />
-  <Route path="/navbar" element={<Navbar />} />
-
+  <Route path="/submit-review" element={<SubmitReview />} />
         </Routes>
 
         {/* Global Footer (Optional but good for #4/#5) */}

@@ -9,6 +9,7 @@ const REGISTER_USER = gql`
     register(username: $username, email: $email, password: $password, role: $role) {
       token
       user {
+        id
         username
         role
       }
@@ -26,6 +27,10 @@ const SignUp = () => {
     onCompleted: (data) => {
       localStorage.setItem('token', data.register.token);
       localStorage.setItem('role', data.register.user.role);
+      // store user id if returned
+      if (data.register.user.id) {
+        localStorage.setItem('userId', data.register.user.id);
+      }
       alert("Registration Successful!");
       navigate('/login');
     }

@@ -26,6 +26,7 @@ const Login = () => {
     onCompleted: (data) => {
       localStorage.setItem('token', data.login.token);
       localStorage.setItem('role', data.login.user.role);
+      localStorage.setItem('userId', data.login.user.id);
       navigate('/'); // Redirect to Home or Dashboard
     }
   });

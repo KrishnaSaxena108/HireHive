@@ -4,21 +4,31 @@ import { useMutation } from '@apollo/client/react/index.js'; // The fixed import
 import { useNavigate } from 'react-router-dom';
 import { Rocket, DollarSign, AlignLeft, Type } from 'lucide-react';
 
-// 1. Define the Job Creation Mutation
 const CREATE_JOB = gql`
-  mutation CreateJob($title: String!, $description: String!, $budget: Float!) {
-    createJob(title: $title, description: $description, budget: $budget) {
+  mutation CreateJob($title: String!, $description: String!, $budget: Float!, $category: String) {
+    createJob(title: $title, description: $description, budget: $budget, category: $category) {
       id
       title
+      category
       status
     }
   }
 `;
 
+const CATEGORIES = [
+  { value: 'WEB_DEV', label: '💻 Web Development' },
+  { value: 'MOBILE_DEV', label: '📱 Mobile Development' },
+  { value: 'DESIGN', label: '🎨 Design' },
+  { value: 'WRITING', label: '✍️ Writing' },
+  { value: 'MARKETING', label: '📢 Marketing' },
+  { value: 'OTHER', label: '🔧 Other' }
+];
+
 const PostJob = () => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [budget, setBudget] = useState('');
+  const [category, setCategory] = useState('WEB_DEV');
   const navigate = useNavigate();
 
   // 2. Initialize the Mutation Hook
@@ -39,7 +49,8 @@ const PostJob = () => {
       variables: { 
         title, 
         description, 
-        budget: parseFloat(budget) // Ensure budget is a number for MySQL
+        budget: parseFloat(budget),
+        category
       } 
     });
   };
@@ -78,6 +89,21 @@ const PostJob = () => {
               placeholder="Describe the project requirements..." 
               className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition"
             ></textarea>
+          </div>
+
+          <div>
+            <label className="flex items-center gap-2 text-sm font-bold text-slate-700 mb-2">
+              🏷️ Category
+            </label>
+            <select 
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition"
+            >
+              {CATEGORIES.map(cat => (
+                <option key={cat.value} value={cat.value}>{cat.label}</option>
+              ))}
+            </select>
           </div>
 
           <div>

@@ -1,4 +1,4 @@
-const { User, Job, Proposal, Message, Profile, sequelize } = require('../../models');
+const { User, Job, Proposal, Message, Profile, Notification, Review, sequelize } = require('../../models');
 const { Op } = require('sequelize');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -14,6 +14,10 @@ const generateToken = (user) => {
 const resolvers = {
   Query: {
     users: async () => await User.findAll({ include: ['postedJobs', 'profile'] }),
+    me: async (_, __, { user }) => {
+      if (!user) return null;
+      return await User.findByPk(user.id, { include: ['postedJobs','profile'] });
+    },
     jobs: async () => await Job.findAll({ include: ['client', 'proposals'] }),
     job: async (_, { id }) => await Job.findByPk(id, { include: ['client', 'proposals'] }),
     
@@ -40,6 +44,61 @@ const resolvers = {
     }]
   });
 },
+    notifications: async (_, { userId }) => {
+      return await Notification.findAll({ where: { userId }, order: [['createdAt','DESC']] });
+    },
+    reviewsByUser: async (_, { userId }) => {
+      return await Review.findAll({
+        where: { revieweeId: userId },
+        include: ['reviewer','job']
+      });
+    },
+    reviewsByJob: async (_, { jobId }) => {
+      return await Review.findAll({
+        where: { jobId },
+        include: ['reviewer','reviewee']
+      });
+    },
+    jobsByCategory: async (_, { category }) => {
+      return await Job.findAll({
+        where: { category, status: 'OPEN' },
+        include: ['client', 'proposals']
+      });
+    },
+    searchJobs: async (_, { keyword, category, minBudget, maxBudget, status }) => {
+      const whereClause = {};
+      
+      // keyword search in title and description
+      if (keyword) {
+        whereClause[Op.or] = [
+          { title: { [Op.like]: `%${keyword}%` } },
+          { description: { [Op.like]: `%${keyword}%` } }
+        ];
+      }
+      
+      // category filter
+      if (category) whereClause.category = category;
+      
+      // status filter
+      if (status) whereClause.status = status;
+      
+      // budget range filter
+      if (minBudget !== null && minBudget !== undefined) {
+        whereClause.budget = whereClause.budget || {};
+        whereClause.budget[Op.gte] = minBudget;
+      }
+      if (maxBudget !== null && maxBudget !== undefined) {
+        whereClause.budget = whereClause.budget || {};
+        whereClause.budget[Op.lte] = maxBudget;
+      }
+      
+      return await Job.findAll({
+        where: whereClause,
+        include: ['client', 'proposals'],
+        limit: 50,
+        order: [['createdAt', 'DESC']]
+      });
+    },
   },
 
   Mutation: {
@@ -49,6 +108,12 @@ const resolvers = {
       const hashedPassword = await bcrypt.hash(password, 10);
       const user = await User.create({ username, email, password: hashedPassword, role });
       io.emit('notification', { message: `Welcome our newest ${role.toLowerCase()}, ${username}!` });
+      // persist welcome notification for this user
+      await Notification.create({
+        userId: user.id,
+        message: `Welcome, ${username}! Your account has been created.`,
+        isRead: false
+      });
       const token = generateToken(user);
       return { token, user };
     },
@@ -61,12 +126,31 @@ const resolvers = {
       const token = generateToken(user);
       return { token, user };
     },
+    markNotificationRead: async (_, { id }) => {
+      const notif = await Notification.findByPk(id);
+      if (!notif) throw new Error("Notification not found");
+      await notif.update({ isRead: true });
+      return notif;
+    },
 
     // --- JOB MANAGEMENT (#16) ---
-    createJob: async (_, { title, description, budget }, { io, user }) => {
+    createJob: async (_, { title, description, budget, category }, { io, user }) => {
       if (!user) throw new Error("Unauthorized");
-      const job = await Job.create({ title, description, budget, clientId: user.id, status: 'OPEN' });
+      const job = await Job.create({ 
+        title, 
+        description, 
+        budget, 
+        category: category || 'OTHER',
+        clientId: user.id, 
+        status: 'OPEN' 
+      });
       io.emit('job_created', job);
+      // persist notification to client
+      await Notification.create({
+        userId: user.id,
+        message: `Your job "${title}" in ${category || 'OTHER'} is now live.`,
+        isRead: false
+      });
       return job;
     },
 
@@ -78,6 +162,12 @@ const resolvers = {
       });
       const job = await Job.findByPk(jobId);
       io.to(`user_${job.clientId}`).emit('new_proposal', { jobId, proposalId: proposal.id });
+      // persist notification to job's client
+      await Notification.create({
+        userId: job.clientId,
+        message: `You have a new proposal for your job "${job.title}".`,
+        isRead: false
+      });
       return proposal;
     },
 
@@ -104,6 +194,12 @@ const resolvers = {
 
         // Notify Freelancer via Socket
         io.to(`user_${proposal.freelancerId}`).emit('proposal_accepted', { jobId: job.id });
+        // persist notification for freelancer
+        await Notification.create({
+          userId: proposal.freelancerId,
+          message: `Your proposal for "${job.title}" was accepted!`,
+          isRead: false
+        });
 
         return proposal;
       });
@@ -115,6 +211,12 @@ const resolvers = {
       if (!user) throw new Error("Unauthorized");
       const message = await Message.create({ content, senderId: user.id, receiverId, jobId });
       io.to(`user_${receiverId}`).emit('receive_message', message);
+      // persist notification for receiver
+      await Notification.create({
+        userId: receiverId,
+        message: `New message from ${user.username}.`,
+        isRead: false
+      });
       return message;
     },
 
@@ -128,8 +230,43 @@ const resolvers = {
         await profile.update({ bio, skills, hourlyRate });
       }
       return profile;
+    },
+    // --- Reviews & Ratings ---
+    submitReview: async (_, { revieweeId, jobId, rating, comment }, { user }) => {
+      if (!user) throw new Error("Unauthorized");
+      if (user.id === parseInt(revieweeId)) throw new Error("Cannot review yourself");
+      const job = await Job.findByPk(jobId);
+      if (!job) throw new Error("Job not found");
+      const existing = await Review.findOne({ where: { reviewerId: user.id, jobId } });
+      if (existing) throw new Error("Already reviewed this job");
+      const review = await Review.create({
+        rating, comment, reviewerId: user.id, revieweeId, jobId
+      });
+      return review;
+    },
+
+    // --- Contact Form ---
+    submitContactForm: async (_, { name, email, message }) => {
+      // In a real application, you might want to save this to a database or send an email
+      console.log(`Contact form submission from ${name} (${email}): ${message}`);
+      return {
+        id: Date.now().toString(),
+        name,
+        email,
+        message
+      };
     }
   },
+};
+
+// Field-level resolver for computed values
+resolvers.User = {
+  averageRating: async (parent) => {
+    const reviews = await Review.findAll({ where: { revieweeId: parent.id } });
+    if (reviews.length === 0) return 0;
+    const sum = reviews.reduce((acc, r) => acc + r.rating, 0);
+    return sum / reviews.length;
+  }
 };
 
 module.exports = resolvers;
