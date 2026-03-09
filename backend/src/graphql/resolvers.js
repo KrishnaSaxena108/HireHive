@@ -1,4 +1,4 @@
-const { User, Job, Proposal, Message, Profile, Notification, sequelize } = require('../../models');
+const { User, Job, Proposal, Message, Profile, Notification, Review, sequelize } = require('../../models');
 const { Op } = require('sequelize');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -14,6 +14,10 @@ const generateToken = (user) => {
 const resolvers = {
   Query: {
     users: async () => await User.findAll({ include: ['postedJobs', 'profile'] }),
+    me: async (_, __, { user }) => {
+      if (!user) return null;
+      return await User.findByPk(user.id, { include: ['postedJobs','profile'] });
+    },
     jobs: async () => await Job.findAll({ include: ['client', 'proposals'] }),
     job: async (_, { id }) => await Job.findByPk(id, { include: ['client', 'proposals'] }),
     
@@ -42,6 +46,18 @@ const resolvers = {
 },
     notifications: async (_, { userId }) => {
       return await Notification.findAll({ where: { userId }, order: [['createdAt','DESC']] });
+    },
+    reviewsByUser: async (_, { userId }) => {
+      return await Review.findAll({
+        where: { revieweeId: userId },
+        include: ['reviewer','job']
+      });
+    },
+    reviewsByJob: async (_, { jobId }) => {
+      return await Review.findAll({
+        where: { jobId },
+        include: ['reviewer','reviewee']
+      });
     },
   },
 
@@ -167,8 +183,31 @@ const resolvers = {
         await profile.update({ bio, skills, hourlyRate });
       }
       return profile;
+    },
+    // --- Reviews & Ratings ---
+    submitReview: async (_, { revieweeId, jobId, rating, comment }, { user }) => {
+      if (!user) throw new Error("Unauthorized");
+      if (user.id === parseInt(revieweeId)) throw new Error("Cannot review yourself");
+      const job = await Job.findByPk(jobId);
+      if (!job) throw new Error("Job not found");
+      const existing = await Review.findOne({ where: { reviewerId: user.id, jobId } });
+      if (existing) throw new Error("Already reviewed this job");
+      const review = await Review.create({
+        rating, comment, reviewerId: user.id, revieweeId, jobId
+      });
+      return review;
     }
   },
+};
+
+// Field-level resolver for computed values
+resolvers.User = {
+  averageRating: async (parent) => {
+    const reviews = await Review.findAll({ where: { revieweeId: parent.id } });
+    if (reviews.length === 0) return 0;
+    const sum = reviews.reduce((acc, r) => acc + r.rating, 0);
+    return sum / reviews.length;
+  }
 };
 
 module.exports = resolvers;

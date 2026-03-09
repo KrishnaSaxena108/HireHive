@@ -6,6 +6,11 @@ import { DollarSign, Briefcase, FileText, Bell, CheckCircle, Clock } from 'lucid
 // 1. Query to fetch only THIS freelancer's proposals and jobs
 const GET_FREELANCER_DASHBOARD = gql`
   query GetFreelancerDashboard {
+    me {
+      id
+      username
+      averageRating
+    }
     myProposals {  
       id
       status
@@ -28,6 +33,8 @@ const FreelancerDashboard = () => {
   if (loading) return <div className="p-10 text-center animate-pulse text-blue-600 font-bold">Loading Freelancer Stats...</div>;
   if (error) return <div className="p-10 text-center text-red-500 bg-red-50 rounded-xl">Error: {error.message}</div>;
 
+  const averageRating = data?.me?.averageRating || 0;
+
   // --- 3. FIXED LOGIC: Use 'myProposals' to match the query above ---
   const activeProjects = data?.myProposals?.filter(p => p.status === 'ACCEPTED') || [];
   const pendingBids = data?.myProposals?.filter(p => p.status === 'PENDING') || [];
@@ -49,6 +56,7 @@ const FreelancerDashboard = () => {
   return (
     <div className="p-8 bg-slate-50 min-h-screen">
       <h2 className="text-3xl font-black text-slate-900 mb-8 tracking-tight">Freelancer Workspace</h2>
+      <p className="mb-4 text-lg">Your rating: <span className="font-bold">{averageRating.toFixed(1)} / 5</span></p>
       
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">

@@ -10,10 +10,29 @@ module.exports = (sequelize, DataTypes) => {
         as: 'postedJobs',
         onDelete: 'CASCADE' 
       });
+      // A User can have a Profile
+      this.hasOne(models.Profile, {
+        foreignKey: 'userId',
+        as: 'profile',
+        onDelete: 'CASCADE'
+      });
+
       // A User can have many Notifications
       this.hasMany(models.Notification, {
         foreignKey: 'userId',
         as: 'notifications',
+        onDelete: 'CASCADE'
+      });
+      // Reviews written by this user
+      this.hasMany(models.Review, {
+        foreignKey: 'reviewerId',
+        as: 'writtenReviews',
+        onDelete: 'CASCADE'
+      });
+      // Reviews received by this user
+      this.hasMany(models.Review, {
+        foreignKey: 'revieweeId',
+        as: 'receivedReviews',
         onDelete: 'CASCADE'
       });
     }

@@ -8,6 +8,7 @@ const typeDefs = gql`
     role: String!
     profile: Profile
     postedJobs: [Job]
+    averageRating: Float
   }
 
   type Profile {
@@ -49,12 +50,15 @@ const typeDefs = gql`
 
   type Query {
     users: [User]
+    me: User
     jobs: [Job]
     job(id: ID!): Job
     myProposals: [Proposal]
     messages(receiverId: ID!): [Message]
     freelancerProposals: [Proposal] # <--- Add this line
     notifications(userId: ID!): [Notification]
+    reviewsByUser(userId: ID!): [Review]
+    reviewsByJob(jobId: ID!): [Review]
   }
 
   type Notification {
@@ -62,6 +66,16 @@ const typeDefs = gql`
     message: String!
     isRead: Boolean!
     user: User
+    createdAt: String
+  }
+
+  type Review {
+    id: ID!
+    rating: Int!
+    comment: String
+    reviewer: User
+    reviewee: User
+    job: Job
     createdAt: String
   }
 
@@ -108,6 +122,9 @@ type Mutation {
 
     # --- Notifications ---
     markNotificationRead(id: ID!): Notification
+
+    # --- Reviews & Ratings ---
+    submitReview(revieweeId: ID!, jobId: ID!, rating: Int!, comment: String): Review
   }
 
   type AuthPayload {

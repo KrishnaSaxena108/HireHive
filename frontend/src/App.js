@@ -12,6 +12,7 @@ import FreelancerDashboard from './components/FreelancerDashboard';
 import ClientDashboard from './components/ClientDashboard';
 import CreateProfile from './components/CreateProfile';
 import Messages from './components/Messages';
+import SubmitReview from './components/SubmitReview';
 import About from './pages/About'; // Make sure the path matches where you saved the file
 import Contact from './pages/Contact';
 
@@ -33,6 +34,9 @@ function App() {
             <Link to="/browse" className="hover:text-indigo-600 transition">Find Work</Link>
             <Link to="/messages" className="hover:text-indigo-600 transition flex items-center gap-1">
               <MessageSquare size={18} /> Messages
+            </Link>
+            <Link to="/submit-review" className="hover:text-indigo-600 transition">
+              Leave Review
             </Link>
             <NotificationBell />
             <Link to="/signup" className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition">
@@ -72,8 +76,7 @@ function App() {
 <Route path="/messages" element={<Messages />} />
 <Route path="/about" element={<About />} />
   <Route path="/contact" element={<Contact />} />
-  <Route path="/navbar" element={<Navbar />} />
-
+  <Route path="/submit-review" element={<SubmitReview />} />
         </Routes>
 
         {/* Global Footer (Optional but good for #4/#5) */}

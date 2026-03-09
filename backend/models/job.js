@@ -13,6 +13,10 @@ module.exports = (sequelize, DataTypes) => {
       foreignKey: 'jobId', 
       as: 'proposals' 
     });
+      this.hasMany(models.Review, {
+        foreignKey: 'jobId',
+        as: 'reviews'
+      });
     }
   }
   Job.init({

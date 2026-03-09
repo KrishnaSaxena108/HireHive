@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { gql, useQuery, useMutation } from '@apollo/client';
+import { gql } from '@apollo/client';
+import { useQuery, useMutation } from '@apollo/client/react/index.js';
 import { Bell, Check } from 'lucide-react';
 
 const GET_NOTIFICATIONS = gql`
