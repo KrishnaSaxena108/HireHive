@@ -9,6 +9,7 @@ const typeDefs = gql`
     profile: Profile
     postedJobs: [Job]
     averageRating: Float
+    profilePictureUrl: String
   }
 
   type Profile {
@@ -35,33 +36,19 @@ const typeDefs = gql`
     coverLetter: String
     bidAmount: Float
     status: String
-  
     job: Job
     freelancer: User
   }
 
   type Message {
     id: ID!
-    content: String
-    sender: User
-    receiver: User
+    content: String!
+    senderId: ID!
+    receiverId: ID!
     jobId: ID
     createdAt: String
-  }
-
-  type Query {
-    users: [User]
-    me: User
-    jobs: [Job]
-    jobsByCategory(category: String!): [Job]
-    searchJobs(keyword: String, category: String, minBudget: Float, maxBudget: Float, status: String): [Job]
-    job(id: ID!): Job
-    myProposals: [Proposal]
-    messages(receiverId: ID!): [Message]
-    freelancerProposals: [Proposal] # <--- Add this line
-    notifications(userId: ID!): [Notification]
-    reviewsByUser(userId: ID!): [Review]
-    reviewsByJob(jobId: ID!): [Review]
+    sender: User
+    receiver: User
   }
 
   type Notification {
@@ -82,31 +69,30 @@ const typeDefs = gql`
     createdAt: String
   }
 
-  type Message {
-  id: ID!
-  content: String!
-  senderId: ID!    # Add this line
-  receiverId: ID!  # Add this line
-  jobId: ID
-  createdAt: String
-  sender: User
-  receiver: User
-}
-type Query {
-  # ... existing queries
-  searchFreelancers(query: String, category: String): [User]
-  popularCategories: [String]
-}
   type ContactInquiry {
-  id: ID!
-  name: String!
-  email: String!
-  message: String!
-}
+    id: ID!
+    name: String!
+    email: String!
+    message: String!
+  }
 
-type Mutation {
-  submitContactForm(name: String!, email: String!, message: String!): ContactInquiry
-}
+  type Query {
+    users: [User]
+    me: User
+    jobs: [Job]
+    jobsByCategory(category: String!): [Job]
+    searchJobs(keyword: String, category: String, minBudget: Float, maxBudget: Float, status: String): [Job]
+    job(id: ID!): Job
+    myProposals: [Proposal]
+    messages(receiverId: ID!): [Message]
+    freelancerProposals: [Proposal]
+    notifications(userId: ID!): [Notification]
+    reviewsByUser(userId: ID!): [Review]
+    reviewsByJob(jobId: ID!): [Review]
+    searchFreelancers(query: String, category: String): [User]
+    popularCategories: [String]
+  }
+
   type Mutation {
     # --- Auth (#6, #7) ---
     register(username: String!, email: String!, password: String!, role: String!): AuthPayload
@@ -128,6 +114,9 @@ type Mutation {
 
     # --- Reviews & Ratings ---
     submitReview(revieweeId: ID!, jobId: ID!, rating: Int!, comment: String): Review
+
+    # --- Contact Form ---
+    submitContactForm(name: String!, email: String!, message: String!): ContactInquiry
   }
 
   type AuthPayload {

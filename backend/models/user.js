@@ -60,6 +60,11 @@ module.exports = (sequelize, DataTypes) => {
     balance: {
       type: DataTypes.DECIMAL(10, 2),
       defaultValue: 0.00
+    },
+    profilePictureUrl: {
+      type: DataTypes.STRING,
+      defaultValue: null,
+      comment: 'URL to user profile picture'
     }
   }, {
     sequelize,

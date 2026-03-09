@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { User, DollarSign, Award, Link as LinkIcon } from 'lucide-react';
+import ProfilePictureUpload from './ProfilePictureUpload';
+import PortfolioUpload from './PortfolioUpload';
 
 const CreateProfile = () => {
   const [formData, setFormData] = useState({
@@ -18,6 +20,14 @@ const CreateProfile = () => {
         </div>
 
         <form className="p-10 space-y-8">
+          {/* Profile Picture Upload */}
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 text-slate-700 font-bold mb-4">
+              <User size={18} /> Profile Picture
+            </label>
+            <ProfilePictureUpload />
+          </div>
+
           {/* Bio Section */}
           <div className="space-y-2">
             <label className="flex items-center gap-2 text-slate-700 font-bold">
@@ -56,16 +66,12 @@ const CreateProfile = () => {
             </div>
           </div>
 
-          {/* Portfolio Link */}
+          {/* Portfolio Upload */}
           <div className="space-y-2">
-            <label className="flex items-center gap-2 text-slate-700 font-bold">
-              <LinkIcon size={18} /> Portfolio/GitHub URL
+            <label className="flex items-center gap-2 text-slate-700 font-bold mb-4">
+              <LinkIcon size={18} /> Portfolio File (PDF/Word)
             </label>
-            <input 
-              type="url" placeholder="https://github.com/anshu"
-              className="w-full p-4 rounded-xl border border-slate-200 focus:ring-4 focus:ring-indigo-100 focus:border-indigo-600 outline-none transition-all"
-              onChange={(e) => setFormData({...formData, portfolioUrl: e.target.value})}
-            />
+            <PortfolioUpload />
           </div>
 
           <button className="w-full bg-indigo-600 text-white py-4 rounded-2xl text-xl font-black shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all active:scale-95">

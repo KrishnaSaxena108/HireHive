@@ -243,6 +243,18 @@ const resolvers = {
         rating, comment, reviewerId: user.id, revieweeId, jobId
       });
       return review;
+    },
+
+    // --- Contact Form ---
+    submitContactForm: async (_, { name, email, message }) => {
+      // In a real application, you might want to save this to a database or send an email
+      console.log(`Contact form submission from ${name} (${email}): ${message}`);
+      return {
+        id: Date.now().toString(),
+        name,
+        email,
+        message
+      };
     }
   },
 };

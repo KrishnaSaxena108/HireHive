@@ -20,6 +20,11 @@ module.exports = (sequelize, DataTypes) => {
     bio: DataTypes.TEXT,
     skills: DataTypes.STRING,
     hourlyRate: DataTypes.DECIMAL,
+    portfolioUrl: {
+      type: DataTypes.STRING,
+      defaultValue: null,
+      comment: 'URL to portfolio file or document'
+    },
     userId: DataTypes.INTEGER
   }, {
     sequelize,
