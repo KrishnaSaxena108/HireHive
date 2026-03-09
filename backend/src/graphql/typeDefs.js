@@ -25,6 +25,7 @@ const typeDefs = gql`
     description: String!
     budget: Float!
     status: String!
+    category: String!
     client: User
     proposals: [Proposal]
   }
@@ -52,6 +53,7 @@ const typeDefs = gql`
     users: [User]
     me: User
     jobs: [Job]
+    jobsByCategory(category: String!): [Job]
     job(id: ID!): Job
     myProposals: [Proposal]
     messages(receiverId: ID!): [Message]
@@ -113,7 +115,7 @@ type Mutation {
     updateProfile(bio: String, skills: String, hourlyRate: Float): Profile
 
     # --- Jobs & Proposals (#11, #16, #18) ---
-    createJob(title: String!, description: String!, budget: Float!): Job
+    createJob(title: String!, description: String!, budget: Float!, category: String): Job
     submitProposal(jobId: ID!, coverLetter: String!, bidAmount: Float!): Proposal
     acceptProposal(proposalId: ID!): Proposal
     

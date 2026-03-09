@@ -37,6 +37,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.ENUM('OPEN', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'),
       defaultValue: 'OPEN'
     },
+    category: {
+      type: DataTypes.ENUM('WEB_DEV', 'MOBILE_DEV', 'DESIGN', 'WRITING', 'MARKETING', 'OTHER'),
+      defaultValue: 'OTHER'
+    },
     clientId: {
       type: DataTypes.INTEGER,
       allowNull: false

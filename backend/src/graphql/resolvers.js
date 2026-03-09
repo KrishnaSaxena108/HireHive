@@ -59,6 +59,12 @@ const resolvers = {
         include: ['reviewer','reviewee']
       });
     },
+    jobsByCategory: async (_, { category }) => {
+      return await Job.findAll({
+        where: { category, status: 'OPEN' },
+        include: ['client', 'proposals']
+      });
+    },
   },
 
   Mutation: {
@@ -94,14 +100,21 @@ const resolvers = {
     },
 
     // --- JOB MANAGEMENT (#16) ---
-    createJob: async (_, { title, description, budget }, { io, user }) => {
+    createJob: async (_, { title, description, budget, category }, { io, user }) => {
       if (!user) throw new Error("Unauthorized");
-      const job = await Job.create({ title, description, budget, clientId: user.id, status: 'OPEN' });
+      const job = await Job.create({ 
+        title, 
+        description, 
+        budget, 
+        category: category || 'OTHER',
+        clientId: user.id, 
+        status: 'OPEN' 
+      });
       io.emit('job_created', job);
       // persist notification to client
       await Notification.create({
         userId: user.id,
-        message: `Your job "${title}" is now live.`,
+        message: `Your job "${title}" in ${category || 'OTHER'} is now live.`,
         isRead: false
       });
       return job;

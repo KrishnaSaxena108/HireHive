@@ -13,6 +13,7 @@ import ClientDashboard from './components/ClientDashboard';
 import CreateProfile from './components/CreateProfile';
 import Messages from './components/Messages';
 import SubmitReview from './components/SubmitReview';
+import JobFilter from './components/JobFilter';
 import About from './pages/About'; // Make sure the path matches where you saved the file
 import Contact from './pages/Contact';
 
@@ -52,17 +53,7 @@ function App() {
           <Route path="/" element={<Home />} />
 
           {/* Feature #3: Browse Jobs Page */}
-          <Route path="/browse" element={
-            <main className="max-w-6xl mx-auto py-12">
-              <div className="flex justify-between items-center px-6 mb-8">
-                <h3 className="text-2xl font-bold text-slate-800">Latest Opportunities</h3>
-                <Link to="/post-job" className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-indigo-700">
-                  Post a Job
-                </Link>
-              </div>
-              <JobFeed />
-            </main>
-          } />
+          <Route path="/browse" element={<JobFilter />} />
 
           {/* Feature #6: Sign Up Page */}
           <Route path="/signup" element={<SignUp />} />
