@@ -1,4 +1,4 @@
-const { User, Job, Proposal, Message, Profile, sequelize } = require('../../models');
+const { User, Job, Proposal, Message, Profile, Notification, sequelize } = require('../../models');
 const { Op } = require('sequelize');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -40,6 +40,9 @@ const resolvers = {
     }]
   });
 },
+    notifications: async (_, { userId }) => {
+      return await Notification.findAll({ where: { userId }, order: [['createdAt','DESC']] });
+    },
   },
 
   Mutation: {
@@ -49,6 +52,12 @@ const resolvers = {
       const hashedPassword = await bcrypt.hash(password, 10);
       const user = await User.create({ username, email, password: hashedPassword, role });
       io.emit('notification', { message: `Welcome our newest ${role.toLowerCase()}, ${username}!` });
+      // persist welcome notification for this user
+      await Notification.create({
+        userId: user.id,
+        message: `Welcome, ${username}! Your account has been created.`,
+        isRead: false
+      });
       const token = generateToken(user);
       return { token, user };
     },
@@ -61,12 +70,24 @@ const resolvers = {
       const token = generateToken(user);
       return { token, user };
     },
+    markNotificationRead: async (_, { id }) => {
+      const notif = await Notification.findByPk(id);
+      if (!notif) throw new Error("Notification not found");
+      await notif.update({ isRead: true });
+      return notif;
+    },
 
     // --- JOB MANAGEMENT (#16) ---
     createJob: async (_, { title, description, budget }, { io, user }) => {
       if (!user) throw new Error("Unauthorized");
       const job = await Job.create({ title, description, budget, clientId: user.id, status: 'OPEN' });
       io.emit('job_created', job);
+      // persist notification to client
+      await Notification.create({
+        userId: user.id,
+        message: `Your job "${title}" is now live.`,
+        isRead: false
+      });
       return job;
     },
 
@@ -78,6 +99,12 @@ const resolvers = {
       });
       const job = await Job.findByPk(jobId);
       io.to(`user_${job.clientId}`).emit('new_proposal', { jobId, proposalId: proposal.id });
+      // persist notification to job's client
+      await Notification.create({
+        userId: job.clientId,
+        message: `You have a new proposal for your job "${job.title}".`,
+        isRead: false
+      });
       return proposal;
     },
 
@@ -104,6 +131,12 @@ const resolvers = {
 
         // Notify Freelancer via Socket
         io.to(`user_${proposal.freelancerId}`).emit('proposal_accepted', { jobId: job.id });
+        // persist notification for freelancer
+        await Notification.create({
+          userId: proposal.freelancerId,
+          message: `Your proposal for "${job.title}" was accepted!`,
+          isRead: false
+        });
 
         return proposal;
       });
@@ -115,6 +148,12 @@ const resolvers = {
       if (!user) throw new Error("Unauthorized");
       const message = await Message.create({ content, senderId: user.id, receiverId, jobId });
       io.to(`user_${receiverId}`).emit('receive_message', message);
+      // persist notification for receiver
+      await Notification.create({
+        userId: receiverId,
+        message: `New message from ${user.username}.`,
+        isRead: false
+      });
       return message;
     },
 

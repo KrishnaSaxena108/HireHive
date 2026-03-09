@@ -54,8 +54,18 @@ const typeDefs = gql`
     myProposals: [Proposal]
     messages(receiverId: ID!): [Message]
     freelancerProposals: [Proposal] # <--- Add this line
+    notifications(userId: ID!): [Notification]
   }
-    type Message {
+
+  type Notification {
+    id: ID!
+    message: String!
+    isRead: Boolean!
+    user: User
+    createdAt: String
+  }
+
+  type Message {
   id: ID!
   content: String!
   senderId: ID!    # Add this line
@@ -95,6 +105,9 @@ type Mutation {
     
     # --- Chat (#20) ---
     sendMessage(receiverId: ID!, content: String!, jobId: ID): Message
+
+    # --- Notifications ---
+    markNotificationRead(id: ID!): Notification
   }
 
   type AuthPayload {

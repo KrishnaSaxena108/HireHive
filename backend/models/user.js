@@ -10,6 +10,12 @@ module.exports = (sequelize, DataTypes) => {
         as: 'postedJobs',
         onDelete: 'CASCADE' 
       });
+      // A User can have many Notifications
+      this.hasMany(models.Notification, {
+        foreignKey: 'userId',
+        as: 'notifications',
+        onDelete: 'CASCADE'
+      });
     }
   }
   User.init({

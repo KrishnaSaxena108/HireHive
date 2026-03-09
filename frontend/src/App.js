@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import { Briefcase, User, MessageSquare } from 'lucide-react';
+import NotificationBell from './components/NotificationBell';
 import Navbar from './components/Navbar'; // Import the new Navbar
 import Home from './components/Home';
 import JobFeed from './components/JobFeed';
@@ -33,6 +34,7 @@ function App() {
             <Link to="/messages" className="hover:text-indigo-600 transition flex items-center gap-1">
               <MessageSquare size={18} /> Messages
             </Link>
+            <NotificationBell />
             <Link to="/signup" className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition">
               Join
             </Link>
