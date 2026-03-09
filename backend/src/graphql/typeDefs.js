@@ -54,6 +54,7 @@ const typeDefs = gql`
     me: User
     jobs: [Job]
     jobsByCategory(category: String!): [Job]
+    searchJobs(keyword: String, category: String, minBudget: Float, maxBudget: Float, status: String): [Job]
     job(id: ID!): Job
     myProposals: [Proposal]
     messages(receiverId: ID!): [Message]

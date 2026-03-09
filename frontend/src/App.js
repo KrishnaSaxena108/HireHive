@@ -2,9 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import { Briefcase, User, MessageSquare } from 'lucide-react';
 import NotificationBell from './components/NotificationBell';
-import Navbar from './components/Navbar'; // Import the new Navbar
 import Home from './components/Home';
-import JobFeed from './components/JobFeed';
 import SignUp from './components/SignUp';
 import PostJob from './components/PostJob';
 import Login from './components/Login';
@@ -13,7 +11,7 @@ import ClientDashboard from './components/ClientDashboard';
 import CreateProfile from './components/CreateProfile';
 import Messages from './components/Messages';
 import SubmitReview from './components/SubmitReview';
-import JobFilter from './components/JobFilter';
+import AdvancedSearch from './components/AdvancedSearch';
 import About from './pages/About'; // Make sure the path matches where you saved the file
 import Contact from './pages/Contact';
 
@@ -52,8 +50,8 @@ function App() {
           {/* Feature #1: Home Page */}
           <Route path="/" element={<Home />} />
 
-          {/* Feature #3: Browse Jobs Page */}
-          <Route path="/browse" element={<JobFilter />} />
+          {/* Feature #3: Browse Jobs Page - Advanced Search */}
+          <Route path="/browse" element={<AdvancedSearch />} />
 
           {/* Feature #6: Sign Up Page */}
           <Route path="/signup" element={<SignUp />} />

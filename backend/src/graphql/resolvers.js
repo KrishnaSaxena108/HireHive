@@ -65,6 +65,40 @@ const resolvers = {
         include: ['client', 'proposals']
       });
     },
+    searchJobs: async (_, { keyword, category, minBudget, maxBudget, status }) => {
+      const whereClause = {};
+      
+      // keyword search in title and description
+      if (keyword) {
+        whereClause[Op.or] = [
+          { title: { [Op.like]: `%${keyword}%` } },
+          { description: { [Op.like]: `%${keyword}%` } }
+        ];
+      }
+      
+      // category filter
+      if (category) whereClause.category = category;
+      
+      // status filter
+      if (status) whereClause.status = status;
+      
+      // budget range filter
+      if (minBudget !== null && minBudget !== undefined) {
+        whereClause.budget = whereClause.budget || {};
+        whereClause.budget[Op.gte] = minBudget;
+      }
+      if (maxBudget !== null && maxBudget !== undefined) {
+        whereClause.budget = whereClause.budget || {};
+        whereClause.budget[Op.lte] = maxBudget;
+      }
+      
+      return await Job.findAll({
+        where: whereClause,
+        include: ['client', 'proposals'],
+        limit: 50,
+        order: [['createdAt', 'DESC']]
+      });
+    },
   },
 
   Mutation: {
