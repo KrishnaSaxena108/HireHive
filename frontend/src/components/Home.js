@@ -1,8 +1,19 @@
-import React from 'react';
-import { Search, Rocket, ShieldCheck, Zap } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Rocket, ShieldCheck, Zap } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const Home = () => {
+  const [searchKeyword, setSearchKeyword] = useState('');
+  const navigate = useNavigate();
+
+  const handleSearch = () => {
+    if (searchKeyword.trim()) {
+      navigate(`/browse?keyword=${encodeURIComponent(searchKeyword.trim())}`);
+    } else {
+      navigate('/browse');
+    }
+  };
+
   return (
     <div className="bg-white">
       {/* Hero Section */}
@@ -20,8 +31,13 @@ const Home = () => {
             type="text" 
             placeholder="Search for 'Logo Design' or 'React Developer'..." 
             className="flex-grow px-6 py-3 text-gray-800 outline-none rounded-full"
+            value={searchKeyword}
+            onChange={(e) => setSearchKeyword(e.target.value)}
           />
-          <button className="bg-indigo-600 px-8 py-3 rounded-full font-bold hover:bg-indigo-500 transition shadow-lg">
+          <button 
+            onClick={handleSearch}
+            className="bg-indigo-600 px-8 py-3 rounded-full font-bold hover:bg-indigo-500 transition shadow-lg"
+          >
             Search
           </button>
         </div>
