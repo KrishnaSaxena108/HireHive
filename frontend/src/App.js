@@ -12,7 +12,10 @@ import CreateProfile from './components/CreateProfile';
 import Messages from './components/Messages';
 import SubmitReview from './components/SubmitReview';
 import AdvancedSearch from './components/AdvancedSearch';
-import About from './pages/About'; // Make sure the path matches where you saved the file
+import JobDetail from './components/JobDetail';
+import FreelancerSearch from './components/FreelancerSearch';
+import AdminDashboard from './components/AdminDashboard';
+import About from './pages/About';
 import Contact from './pages/Contact';
 
 
@@ -31,6 +34,7 @@ function App() {
           
           <div className="flex gap-6 text-slate-500 font-medium items-center">
             <Link to="/browse" className="hover:text-indigo-600 transition">Find Work</Link>
+            <Link to="/freelancers" className="hover:text-indigo-600 transition">Find Talent</Link>
             <Link to="/messages" className="hover:text-indigo-600 transition flex items-center gap-1">
               <MessageSquare size={18} /> Messages
             </Link>
@@ -66,6 +70,9 @@ function App() {
 <Route path="/about" element={<About />} />
   <Route path="/contact" element={<Contact />} />
   <Route path="/submit-review" element={<SubmitReview />} />
+  <Route path="/admin" element={<AdminDashboard />} />
+  <Route path="/job/:id" element={<JobDetail />} />
+  <Route path="/freelancers" element={<FreelancerSearch />} />
         </Routes>
 
         {/* Global Footer (Optional but good for #4/#5) */}

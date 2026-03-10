@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { gql } from '@apollo/client';
 import { useQuery } from '@apollo/client/react/index.js';
+import { Link } from 'react-router-dom';
 import { Briefcase, DollarSign, Filter, Search, X } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 
 const SEARCH_JOBS = gql`
   query SearchJobs($keyword: String, $category: String, $minBudget: Float, $maxBudget: Float, $status: String) {
@@ -32,11 +34,12 @@ const STATUS_OPTIONS = [
 ];
 
 const AdvancedSearch = () => {
-  const [keyword, setKeyword] = useState('');
-  const [category, setCategory] = useState('');
-  const [minBudget, setMinBudget] = useState('');
-  const [maxBudget, setMaxBudget] = useState('');
-  const [status, setStatus] = useState('');
+  const [searchParams] = useSearchParams();
+  const [keyword, setKeyword] = useState(searchParams.get('keyword') || '');
+  const [category, setCategory] = useState(searchParams.get('category') || '');
+  const [minBudget, setMinBudget] = useState(searchParams.get('minBudget') || '');
+  const [maxBudget, setMaxBudget] = useState(searchParams.get('maxBudget') || '');
+  const [status, setStatus] = useState(searchParams.get('status') || '');
   const [showFilters, setShowFilters] = useState(false);
 
   const { loading, error, data } = useQuery(SEARCH_JOBS, {
@@ -208,9 +211,12 @@ const AdvancedSearch = () => {
             </div>
 
             {/* Action Button */}
-            <button className="w-full bg-slate-900 text-white py-4 rounded-2xl font-black hover:bg-indigo-600 transition-all active:scale-95 shadow-lg shadow-slate-200">
+            <Link 
+              to={`/job/${job.id}`}
+              className="w-full bg-slate-900 text-white py-4 rounded-2xl font-black hover:bg-indigo-600 transition-all active:scale-95 shadow-lg shadow-slate-200 text-center block"
+            >
               View Details
-            </button>
+            </Link>
           </div>
         ))}
       </div>

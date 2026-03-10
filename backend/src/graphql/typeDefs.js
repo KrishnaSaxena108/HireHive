@@ -76,6 +76,14 @@ const typeDefs = gql`
     message: String!
   }
 
+  type AdminStats {
+    totalUsers: Int!
+    totalJobs: Int!
+    totalProposals: Int!
+    activeJobs: Int!
+    completedJobs: Int!
+  }
+
   type Query {
     users: [User]
     me: User
@@ -85,12 +93,19 @@ const typeDefs = gql`
     job(id: ID!): Job
     myProposals: [Proposal]
     messages(receiverId: ID!): [Message]
+    userMessages: [Message]
     freelancerProposals: [Proposal]
     notifications(userId: ID!): [Notification]
     reviewsByUser(userId: ID!): [Review]
     reviewsByJob(jobId: ID!): [Review]
     searchFreelancers(query: String, category: String): [User]
     popularCategories: [String]
+
+    # --- Admin Queries ---
+    adminUsers: [User]
+    adminJobs: [Job]
+    adminProposals: [Proposal]
+    adminStats: AdminStats
   }
 
   type Mutation {
@@ -117,6 +132,12 @@ const typeDefs = gql`
 
     # --- Contact Form ---
     submitContactForm(name: String!, email: String!, message: String!): ContactInquiry
+
+    # --- Admin Mutations ---
+    suspendUser(userId: ID!): User
+    activateUser(userId: ID!): User
+    deleteJob(jobId: ID!): Boolean
+    deleteProposal(proposalId: ID!): Boolean
   }
 
   type AuthPayload {
