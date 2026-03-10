@@ -93,6 +93,7 @@ const typeDefs = gql`
     job(id: ID!): Job
     myProposals: [Proposal]
     messages(receiverId: ID!): [Message]
+    userMessages: [Message]
     freelancerProposals: [Proposal]
     notifications(userId: ID!): [Notification]
     reviewsByUser(userId: ID!): [Review]

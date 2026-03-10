@@ -1,7 +1,4 @@
-const { User, Job, Proposal, Message, Profile, Notification, Review, sequelize } = require('../../models');
-const { Op } = require('sequelize');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
+const nodemailer = require('nodemailer');
 
 const generateToken = (user) => {
   return jwt.sign(
@@ -25,25 +22,19 @@ const resolvers = {
       if (!user) throw new Error("Unauthorized");
       return await Proposal.findAll({ where: { freelancerId: user.id }, include: ['job'] });
     },
-    searchFreelancers: async (_, { query, category }) => {
-  const whereClause = { role: 'FREELANCER' };
-  
-  // Advanced search across Username and Profile bio/skills
-  return await User.findAll({
-    where: whereClause,
-    include: [{
-      model: Profile,
-      as: 'profile',
-      where: {
-        [Op.or]: [
-          { skills: { [Op.like]: `%${query}%` } },
-          { bio: { [Op.like]: `%${query}%` } },
-          category ? { category: category } : {}
-        ]
-      }
-    }]
-  });
-},
+    popularCategories: async () => {
+      // Return categories sorted by job count
+      const categories = await Job.findAll({
+        attributes: [
+          'category',
+          [sequelize.fn('COUNT', sequelize.col('category')), 'count']
+        ],
+        group: ['category'],
+        order: [[sequelize.fn('COUNT', sequelize.col('category')), 'DESC']],
+        limit: 6
+      });
+      return categories.map(cat => cat.category);
+    },
     notifications: async (_, { userId }) => {
       return await Notification.findAll({ where: { userId }, order: [['createdAt','DESC']] });
     },
@@ -96,6 +87,18 @@ const resolvers = {
         where: whereClause,
         include: ['client', 'proposals'],
         limit: 50,
+        order: [['createdAt', 'DESC']]
+      });
+    },
+
+    messages: async (_, { receiverId }) => {
+      return await Message.findAll({ where: { receiverId }, order: [['createdAt','DESC']] });
+    },
+    userMessages: async (_, __, { user }) => {
+      if (!user) throw new Error("Unauthorized");
+      return await Message.findAll({
+        where: { [Op.or]: [{ senderId: user.id }, { receiverId: user.id }] },
+        include: ['sender', 'receiver'],
         order: [['createdAt', 'DESC']]
       });
     },
@@ -280,14 +283,36 @@ const resolvers = {
 
     // --- Contact Form ---
     submitContactForm: async (_, { name, email, message }) => {
-      // In a real application, you might want to save this to a database or send an email
-      console.log(`Contact form submission from ${name} (${email}): ${message}`);
-      return {
-        id: Date.now().toString(),
-        name,
-        email,
-        message
+      // Create transporter
+      const transporter = nodemailer.createTransporter({
+        service: 'gmail', // or your email service
+        auth: {
+          user: process.env.EMAIL_USER || 'your-email@gmail.com',
+          pass: process.env.EMAIL_PASS || 'your-app-password'
+        }
+      });
+
+      // Email options
+      const mailOptions = {
+        from: email,
+        to: 'admin@hirehive.com', // your admin email
+        subject: `Contact Form Submission from ${name}`,
+        text: `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`
       };
+
+      try {
+        await transporter.sendMail(mailOptions);
+        console.log(`Contact form email sent from ${name} (${email})`);
+        return {
+          id: Date.now().toString(),
+          name,
+          email,
+          message
+        };
+      } catch (error) {
+        console.error('Email send error:', error);
+        throw new Error('Failed to send message. Please try again later.');
+      }
     },
 
     // --- Admin Mutations ---
