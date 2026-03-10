@@ -99,6 +99,39 @@ const resolvers = {
         order: [['createdAt', 'DESC']]
       });
     },
+
+    // --- Admin Queries ---
+    adminUsers: async (_, __, { user }) => {
+      if (!user || user.role !== 'ADMIN') throw new Error("Admin access required");
+      return await User.findAll({ include: ['postedJobs', 'profile'] });
+    },
+    adminJobs: async (_, __, { user }) => {
+      if (!user || user.role !== 'ADMIN') throw new Error("Admin access required");
+      return await Job.findAll({ include: ['client', 'proposals'] });
+    },
+    adminProposals: async (_, __, { user }) => {
+      if (!user || user.role !== 'ADMIN') throw new Error("Admin access required");
+      return await Proposal.findAll({ include: ['job', 'freelancer'] });
+    },
+    adminStats: async (_, __, { user }) => {
+      if (!user || user.role !== 'ADMIN') throw new Error("Admin access required");
+      
+      const [totalUsers, totalJobs, totalProposals, activeJobs, completedJobs] = await Promise.all([
+        User.count(),
+        Job.count(),
+        Proposal.count(),
+        Job.count({ where: { status: 'OPEN' } }),
+        Job.count({ where: { status: 'COMPLETED' } })
+      ]);
+
+      return {
+        totalUsers,
+        totalJobs,
+        totalProposals,
+        activeJobs,
+        completedJobs
+      };
+    },
   },
 
   Mutation: {
@@ -255,6 +288,41 @@ const resolvers = {
         email,
         message
       };
+    },
+
+    // --- Admin Mutations ---
+    suspendUser: async (_, { userId }, { user }) => {
+      if (!user || user.role !== 'ADMIN') throw new Error("Admin access required");
+      const targetUser = await User.findByPk(userId);
+      if (!targetUser) throw new Error("User not found");
+      if (targetUser.role === 'ADMIN') throw new Error("Cannot suspend admin users");
+      
+      await targetUser.update({ role: 'SUSPENDED' });
+      return targetUser;
+    },
+    activateUser: async (_, { userId }, { user }) => {
+      if (!user || user.role !== 'ADMIN') throw new Error("Admin access required");
+      const targetUser = await User.findByPk(userId);
+      if (!targetUser) throw new Error("User not found");
+      
+      await targetUser.update({ role: 'FREELANCER' }); // Default to freelancer
+      return targetUser;
+    },
+    deleteJob: async (_, { jobId }, { user }) => {
+      if (!user || user.role !== 'ADMIN') throw new Error("Admin access required");
+      const job = await Job.findByPk(jobId);
+      if (!job) throw new Error("Job not found");
+      
+      await job.destroy();
+      return true;
+    },
+    deleteProposal: async (_, { proposalId }, { user }) => {
+      if (!user || user.role !== 'ADMIN') throw new Error("Admin access required");
+      const proposal = await Proposal.findByPk(proposalId);
+      if (!proposal) throw new Error("Proposal not found");
+      
+      await proposal.destroy();
+      return true;
     }
   },
 };

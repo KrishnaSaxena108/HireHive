@@ -12,6 +12,7 @@ import CreateProfile from './components/CreateProfile';
 import Messages from './components/Messages';
 import SubmitReview from './components/SubmitReview';
 import AdvancedSearch from './components/AdvancedSearch';
+import AdminDashboard from './components/AdminDashboard';
 import About from './pages/About'; // Make sure the path matches where you saved the file
 import Contact from './pages/Contact';
 
@@ -66,9 +67,7 @@ function App() {
 <Route path="/about" element={<About />} />
   <Route path="/contact" element={<Contact />} />
   <Route path="/submit-review" element={<SubmitReview />} />
-        </Routes>
-
-        {/* Global Footer (Optional but good for #4/#5) */}
+  <Route path="/admin" element={<AdminDashboard />} />
         <footer className="bg-white border-t border-slate-200 py-8 text-center text-slate-500 text-sm">
           <p>© 2026 HireHive. All rights reserved.</p>
         </footer>
