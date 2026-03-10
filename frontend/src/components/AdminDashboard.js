@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { gql, useQuery, useMutation } from '@apollo/client/react/index.js';
+import { gql } from '@apollo/client';
+import { useQuery, useMutation } from '@apollo/client/react/index.js';
 import { Users, Briefcase, FileText, BarChart3, UserX, UserCheck, Trash2, AlertTriangle } from 'lucide-react';
 
 const GET_ADMIN_STATS = gql`

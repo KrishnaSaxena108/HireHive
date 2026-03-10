@@ -68,6 +68,9 @@ function App() {
   <Route path="/contact" element={<Contact />} />
   <Route path="/submit-review" element={<SubmitReview />} />
   <Route path="/admin" element={<AdminDashboard />} />
+        </Routes>
+
+        {/* Global Footer (Optional but good for #4/#5) */}
         <footer className="bg-white border-t border-slate-200 py-8 text-center text-slate-500 text-sm">
           <p>© 2026 HireHive. All rights reserved.</p>
         </footer>
