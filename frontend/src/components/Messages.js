@@ -34,7 +34,12 @@ const SEND_MESSAGE = gql`
 const Messages = () => {
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [newMessage, setNewMessage] = useState('');
-  const { loading, error, data, refetch } = useQuery(GET_USER_MESSAGES);
+  const userId = localStorage.getItem('userId');
+
+  // if there is no logged-in user, do not run the query and prompt for login
+  const { loading, error, data, refetch } = useQuery(GET_USER_MESSAGES, {
+    skip: !userId
+  });
 
   const [sendMessage] = useMutation(SEND_MESSAGE, {
     onCompleted: () => {
@@ -43,11 +48,17 @@ const Messages = () => {
     }
   });
 
+  if (!userId) {
+    return (
+      <div className="p-10 text-center">
+        Please <a href="/login" className="text-indigo-600 font-semibold">log in</a> to view your messages.
+      </div>
+    );
+  }
   if (loading) return <div className="p-10 text-center">Loading messages...</div>;
   if (error) return <div className="p-10 text-center text-red-500">Error: {error.message}</div>;
 
   const messages = data?.userMessages || [];
-  const userId = localStorage.getItem('userId');
 
   // Group messages by conversation (other user)
   const conversations = {};
