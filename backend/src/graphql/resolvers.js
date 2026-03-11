@@ -1,4 +1,8 @@
 const nodemailer = require('nodemailer');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const { User, Job, Proposal, Message, Notification, Review, sequelize } = require('../../models');
+const { Op } = require('sequelize');
 
 const generateToken = (user) => {
   return jwt.sign(
