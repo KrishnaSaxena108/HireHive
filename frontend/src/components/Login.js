@@ -27,7 +27,16 @@ const Login = () => {
       localStorage.setItem('token', data.login.token);
       localStorage.setItem('role', data.login.user.role);
       localStorage.setItem('userId', data.login.user.id);
-      navigate('/'); // Redirect to Home or Dashboard
+      // Redirect based on role
+      if (data.login.user.role === 'FREELANCER') {
+        navigate('/freelancer-dashboard');
+      } else if (data.login.user.role === 'CLIENT') {
+        navigate('/client-dashboard');
+      } else if (data.login.user.role === 'ADMIN') {
+        navigate('/admin');
+      } else {
+        navigate('/');
+      }
     }
   });
 

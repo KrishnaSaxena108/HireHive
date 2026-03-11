@@ -30,6 +30,19 @@ const GET_JOB = gql`
   }
 `;
 
+const SEARCH_JOBS = gql`
+  query SearchJobs($keyword: String, $category: String, $minBudget: Float, $maxBudget: Float, $status: String) {
+    searchJobs(keyword: $keyword, category: $category, minBudget: $minBudget, maxBudget: $maxBudget, status: $status) {
+      id
+      title
+      description
+      budget
+      category
+      status
+    }
+  }
+`;
+
 const JobDetail = () => {
   const { id } = useParams();
   const [showApplyModal, setShowApplyModal] = useState(false);
@@ -37,14 +50,28 @@ const JobDetail = () => {
     variables: { id }
   });
 
+  // Fetch related jobs
+  const job = data?.job;
+  const { data: relatedJobsData } = useQuery(SEARCH_JOBS, {
+    variables: {
+      category: job?.category || null,
+      status: 'OPEN'
+    },
+    skip: !job?.category
+  });
+
   if (loading) return <div className="p-10 text-center">Loading job details...</div>;
   if (error) return <div className="p-10 text-center text-red-500">Error: {error.message}</div>;
 
-  const job = data?.job;
   if (!job) return <div className="p-10 text-center">Job not found</div>;
 
   const userRole = localStorage.getItem('role');
   const canApply = userRole === 'FREELANCER' && job.status === 'OPEN';
+
+  // Filter related jobs (exclude current job, limit to 3)
+  const relatedJobs = (relatedJobsData?.searchJobs || [])
+    .filter(j => j.id !== id)
+    .slice(0, 3);
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -110,6 +137,37 @@ const JobDetail = () => {
           </p>
         )}
       </div>
+
+      {/* Related Jobs Section */}
+      {relatedJobs.length > 0 && (
+        <div className="mt-12">
+          <h2 className="text-2xl font-black text-slate-900 mb-6">Similar Jobs You Might Like</h2>
+          <div className="grid md:grid-cols-3 gap-6">
+            {relatedJobs.map((relatedJob) => (
+              <Link
+                key={relatedJob.id}
+                to={`/job/${relatedJob.id}`}
+                className="group bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-lg hover:border-indigo-100 transition-all"
+              >
+                <div className="flex justify-between items-start mb-3">
+                  <div className="p-2 bg-indigo-50 rounded-lg text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                    <Briefcase size={20} />
+                  </div>
+                  <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">
+                    {relatedJob.status}
+                  </span>
+                </div>
+                <h3 className="font-bold text-slate-900 mb-2 group-hover:text-indigo-600">{relatedJob.title}</h3>
+                <p className="text-sm text-slate-500 line-clamp-2 mb-4">{relatedJob.description}</p>
+                <div className="flex items-center gap-2 font-bold text-green-600">
+                  <DollarSign size={16} />
+                  <span>${relatedJob.budget}</span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Apply Modal */}
       {showApplyModal && (

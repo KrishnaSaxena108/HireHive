@@ -1,8 +1,8 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import { Briefcase, User, MessageSquare } from 'lucide-react';
-import NotificationBell from './components/NotificationBell';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+// icons used only in components, not here
 import Home from './components/Home';
+import Navbar from './components/Navbar';
 import SignUp from './components/SignUp';
 import PostJob from './components/PostJob';
 import Login from './components/Login';
@@ -17,37 +17,16 @@ import FreelancerSearch from './components/FreelancerSearch';
 import AdminDashboard from './components/AdminDashboard';
 import About from './pages/About';
 import Contact from './pages/Contact';
+import ProtectedRoute from './components/ProtectedRoute';
 
 
 function App() {
   return (
     <Router>
       <div className="min-h-screen bg-slate-50">
-        {/* Navigation - Requirement #23: Search/Nav */}
-        <nav className="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center sticky top-0 z-50">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="bg-indigo-600 p-2 rounded-lg">
-              <Briefcase className="text-white" size={20} />
-            </div>
-            <h1 className="text-xl font-bold text-slate-900 tracking-tight">HireHive</h1>
-          </Link>
-          
-          <div className="flex gap-6 text-slate-500 font-medium items-center">
-            <Link to="/browse" className="hover:text-indigo-600 transition">Find Work</Link>
-            <Link to="/freelancers" className="hover:text-indigo-600 transition">Find Talent</Link>
-            <Link to="/messages" className="hover:text-indigo-600 transition flex items-center gap-1">
-              <MessageSquare size={18} /> Messages
-            </Link>
-            <Link to="/submit-review" className="hover:text-indigo-600 transition">
-              Leave Review
-            </Link>
-            <NotificationBell />
-            <Link to="/signup" className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition">
-              Join
-            </Link>
-            <User className="cursor-pointer hover:text-indigo-600" />
-          </div>
-        </nav>
+        {/* Navigation bar */}
+        <Navbar />
+
 
         {/* Dynamic Page Content */}
         <Routes>
@@ -60,19 +39,41 @@ function App() {
           {/* Feature #6: Sign Up Page */}
           <Route path="/signup" element={<SignUp />} />
 
-          {/* Feature #16: Post a Job Page */}
-          <Route path="/post-job" element={<PostJob />} />
+          {/* Login Page */}
           <Route path="/login" element={<Login />} />
-          <Route path="/freelancer-dashboard" element={<FreelancerDashboard />} />
-<Route path="/client-dashboard" element={<ClientDashboard />} />
-<Route path="/create-profile" element={<CreateProfile />} />
-<Route path="/messages" element={<Messages />} />
-<Route path="/about" element={<About />} />
-  <Route path="/contact" element={<Contact />} />
-  <Route path="/submit-review" element={<SubmitReview />} />
-  <Route path="/admin" element={<AdminDashboard />} />
-  <Route path="/job/:id" element={<JobDetail />} />
-  <Route path="/freelancers" element={<FreelancerSearch />} />
+
+          {/* Feature #5: Post a Job Page - CLIENT ONLY */}
+          <Route path="/post-job" element={<ProtectedRoute element={<PostJob />} requiredRole="CLIENT" />} />
+
+          {/* Feature #6: Freelancer Dashboard - FREELANCER ONLY */}
+          <Route path="/freelancer-dashboard" element={<ProtectedRoute element={<FreelancerDashboard />} requiredRole="FREELANCER" />} />
+
+          {/* Feature #7: Client Dashboard - CLIENT ONLY */}
+          <Route path="/client-dashboard" element={<ProtectedRoute element={<ClientDashboard />} requiredRole="CLIENT" />} />
+
+          {/* Feature #10: Create Profile - FREELANCER ONLY */}
+          <Route path="/create-profile" element={<ProtectedRoute element={<CreateProfile />} requiredRole="FREELANCER" />} />
+
+          {/* Feature #9: Messages - AUTHENTICATED */}
+          <Route path="/messages" element={<ProtectedRoute element={<Messages />} />} />
+
+          {/* Feature #8: Admin Dashboard - ADMIN ONLY */}
+          <Route path="/admin" element={<ProtectedRoute element={<AdminDashboard />} requiredRole="ADMIN" />} />
+
+          {/* Feature #3: Job Detail Page */}
+          <Route path="/job/:id" element={<JobDetail />} />
+
+          {/* Feature #4: Freelancer Search */}
+          <Route path="/freelancers" element={<FreelancerSearch />} />
+
+          {/* Feature #11: Submit Review - AUTHENTICATED */}
+          <Route path="/submit-review" element={<ProtectedRoute element={<SubmitReview />} />} />
+
+          {/* Feature #14: About Page */}
+          <Route path="/about" element={<About />} />
+
+          {/* Feature #15: Contact Page */}
+          <Route path="/contact" element={<Contact />} />
         </Routes>
 
         {/* Global Footer (Optional but good for #4/#5) */}
