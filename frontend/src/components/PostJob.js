@@ -5,8 +5,8 @@ import { useNavigate } from 'react-router-dom';
 import { Rocket, DollarSign, AlignLeft, Type } from 'lucide-react';
 
 const CREATE_JOB = gql`
-  mutation CreateJob($title: String!, $description: String!, $budget: Float!, $category: String) {
-    createJob(title: $title, description: $description, budget: $budget, category: $category) {
+  mutation CreateJob($title: String!, $description: String!, $budget: Float!, $category: String, $deadline: String, $requiredSkills: String) {
+    createJob(title: $title, description: $description, budget: $budget, category: $category, deadline: $deadline, requiredSkills: $requiredSkills) {
       id
       title
       category
@@ -29,6 +29,8 @@ const PostJob = () => {
   const [description, setDescription] = useState('');
   const [budget, setBudget] = useState('');
   const [category, setCategory] = useState('WEB_DEV');
+  const [deadline, setDeadline] = useState('');
+  const [requiredSkills, setRequiredSkills] = useState('');
   const navigate = useNavigate();
 
   // 2. Initialize the Mutation Hook
@@ -50,7 +52,9 @@ const PostJob = () => {
         title, 
         description, 
         budget: parseFloat(budget),
-        category
+        category,
+        deadline: deadline || null,
+        requiredSkills: requiredSkills || null
       } 
     });
   };
@@ -116,6 +120,31 @@ const PostJob = () => {
               value={budget}
               onChange={(e) => setBudget(e.target.value)}
               placeholder="500" 
+              className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition"
+            />
+          </div>
+
+          <div>
+            <label className="flex items-center gap-2 text-sm font-bold text-slate-700 mb-2">
+              📅 Deadline
+            </label>
+            <input 
+              type="date" 
+              value={deadline}
+              onChange={(e) => setDeadline(e.target.value)}
+              className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition"
+            />
+          </div>
+
+          <div>
+            <label className="flex items-center gap-2 text-sm font-bold text-slate-700 mb-2">
+              🎯 Required Skills (Comma separated)
+            </label>
+            <input 
+              type="text" 
+              value={requiredSkills}
+              onChange={(e) => setRequiredSkills(e.target.value)}
+              placeholder="e.g. React, Node.js, Python" 
               className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition"
             />
           </div>

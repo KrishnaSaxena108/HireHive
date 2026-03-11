@@ -8,7 +8,8 @@ const CreateProfile = () => {
     bio: '',
     skills: '',
     hourlyRate: '',
-    portfolioUrl: ''
+    portfolioUrl: '',
+    availability: 'PART_TIME'
   });
 
   return (
@@ -64,6 +65,23 @@ const CreateProfile = () => {
                 onChange={(e) => setFormData({...formData, hourlyRate: e.target.value})}
               />
             </div>
+          </div>
+
+          {/* Availability Section */}
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 text-slate-700 font-bold">
+              ⏰ Availability
+            </label>
+            <select
+              value={formData.availability}
+              onChange={(e) => setFormData({...formData, availability: e.target.value})}
+              className="w-full p-4 rounded-xl border border-slate-200 focus:ring-4 focus:ring-indigo-100 focus:border-indigo-600 outline-none transition-all"
+            >
+              <option value="FULL_TIME">Full Time</option>
+              <option value="PART_TIME">Part Time</option>
+              <option value="CONTRACT">Contract Based</option>
+              <option value="AS_NEEDED">As Needed</option>
+            </select>
           </div>
 
           {/* Portfolio Upload */}

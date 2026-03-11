@@ -32,7 +32,13 @@ const SignUp = () => {
         localStorage.setItem('userId', data.register.user.id);
       }
       alert("Registration Successful!");
-      navigate('/login');
+      
+      // Redirect based on role
+      if (data.register.user.role === 'FREELANCER') {
+        navigate('/create-profile');
+      } else {
+        navigate('/client-dashboard');
+      }
     }
   });
 

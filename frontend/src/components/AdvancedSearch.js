@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { gql } from '@apollo/client';
 import { useQuery } from '@apollo/client/react/index.js';
 import { Link } from 'react-router-dom';
-import { Briefcase, DollarSign, Filter, Search, X } from 'lucide-react';
+import { Briefcase, DollarSign, Filter, Search, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 
 const SEARCH_JOBS = gql`
@@ -41,6 +41,9 @@ const AdvancedSearch = () => {
   const [maxBudget, setMaxBudget] = useState(searchParams.get('maxBudget') || '');
   const [status, setStatus] = useState(searchParams.get('status') || '');
   const [showFilters, setShowFilters] = useState(false);
+  const [sortBy, setSortBy] = useState('latest'); // latest, budget-high, budget-low
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 9;
 
   const { loading, error, data } = useQuery(SEARCH_JOBS, {
     variables: {
@@ -56,12 +59,28 @@ const AdvancedSearch = () => {
   const jobs = data?.searchJobs || [];
   const activeFilters = [keyword, category, minBudget, maxBudget, status].filter(Boolean).length;
 
+  // Sort jobs
+  const sortedJobs = [...jobs].sort((a, b) => {
+    if (sortBy === 'budget-high') return b.budget - a.budget;
+    if (sortBy === 'budget-low') return a.budget - b.budget;
+    // latest (default)
+    return new Date(b.createdAt) - new Date(a.createdAt);
+  });
+
+  // Paginate jobs
+  const totalPages = Math.ceil(sortedJobs.length / itemsPerPage);
+  const paginatedJobs = sortedJobs.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
   const clearFilters = () => {
     setKeyword('');
     setCategory('');
     setMinBudget('');
     setMaxBudget('');
     setStatus('');
+    setCurrentPage(1);
   };
 
   return (
@@ -158,9 +177,26 @@ const AdvancedSearch = () => {
         )}
       </div>
 
-      {/* Results Count */}
-      <div className="mb-4 text-slate-600 font-semibold">
-        Found <span className="text-indigo-600">{jobs.length}</span> job{jobs.length !== 1 ? 's' : ''}
+      {/* Results Count & Sort */}
+      <div className="mb-4 flex justify-between items-center">
+        <div className="text-slate-600 font-semibold">
+          Found <span className="text-indigo-600">{sortedJobs.length}</span> job{sortedJobs.length !== 1 ? 's' : ''}
+        </div>
+        <div className="flex gap-4 items-center">
+          <label className="text-sm font-semibold text-slate-700">Sort by:</label>
+          <select
+            value={sortBy}
+            onChange={(e) => {
+              setSortBy(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-sm"
+          >
+            <option value="latest">Latest</option>
+            <option value="budget-high">Budget: High to Low</option>
+            <option value="budget-low">Budget: Low to High</option>
+          </select>
+        </div>
       </div>
 
       {/* Loading */}
@@ -174,13 +210,13 @@ const AdvancedSearch = () => {
       {error && <p className="text-red-500 p-10 text-center bg-red-50 rounded-xl">Error: {error.message}</p>}
 
       {/* No Results */}
-      {!loading && !error && jobs.length === 0 && (
+      {!loading && !error && sortedJobs.length === 0 && (
         <p className="text-center text-slate-500 py-10 text-lg">No jobs match your search criteria. Try adjusting your filters.</p>
       )}
 
       {/* Jobs Grid */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {jobs.map((job) => (
+        {paginatedJobs.map((job) => (
           <div key={job.id} className="group bg-white p-8 rounded-3xl shadow-sm border border-slate-100 hover:shadow-xl hover:border-indigo-100 transition-all duration-300 flex flex-col justify-between">
             <div>
               {/* Header */}
@@ -220,6 +256,43 @@ const AdvancedSearch = () => {
           </div>
         ))}
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex justify-between items-center mt-12 pt-8 border-t border-slate-200">
+          <button
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage(currentPage - 1)}
+            className="flex items-center gap-2 px-6 py-3 bg-slate-200 text-slate-700 rounded-lg font-semibold hover:bg-slate-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+          >
+            <ChevronLeft size={20} /> Previous
+          </button>
+          
+          <div className="flex gap-2">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+                  page === currentPage
+                    ? 'bg-indigo-600 text-white'
+                    : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
+                }`}
+              >
+                {page}
+              </button>
+            ))}
+          </div>
+
+          <button
+            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage(currentPage + 1)}
+            className="flex items-center gap-2 px-6 py-3 bg-slate-200 text-slate-700 rounded-lg font-semibold hover:bg-slate-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+          >
+            Next <ChevronRight size={20} />
+          </button>
+        </div>
+      )}
     </div>
   );
 };
