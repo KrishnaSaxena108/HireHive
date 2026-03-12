@@ -10,6 +10,8 @@ module.exports = (sequelize, DataTypes) => {
         as: 'postedJobs',
         onDelete: 'CASCADE' 
       });
+      // A User has one Profile
+      this.hasOne(models.Profile, { foreignKey: 'userId', as: 'profile' });
     }
   }
   User.init({

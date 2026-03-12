@@ -16,30 +16,51 @@ const resolvers = {
     users: async () => await User.findAll({ include: ['postedJobs', 'profile'] }),
     jobs: async () => await Job.findAll({ include: ['client', 'proposals'] }),
     job: async (_, { id }) => await Job.findByPk(id, { include: ['client', 'proposals'] }),
-    
+
     myProposals: async (_, __, { user }) => {
       if (!user) throw new Error("Unauthorized");
       return await Proposal.findAll({ where: { freelancerId: user.id }, include: ['job'] });
     },
+
+    freelancerProposals: async (_, __, { user }) => {
+      if (!user) throw new Error("Unauthorized");
+      return await Proposal.findAll({ where: { freelancerId: user.id }, include: ['job'] });
+    },
+
+    messages: async (_, { receiverId }, { user }) => {
+      if (!user) throw new Error("Unauthorized");
+      return await Message.findAll({
+        where: {
+          [Op.or]: [
+            { senderId: user.id, receiverId: receiverId },
+            { senderId: receiverId, receiverId: user.id },
+          ],
+        },
+        include: [
+          { model: User, as: 'sender' },
+          { model: User, as: 'receiver' },
+        ],
+        order: [['createdAt', 'ASC']],
+      });
+    },
+
     searchFreelancers: async (_, { query, category }) => {
-  const whereClause = { role: 'FREELANCER' };
-  
-  // Advanced search across Username and Profile bio/skills
-  return await User.findAll({
-    where: whereClause,
-    include: [{
-      model: Profile,
-      as: 'profile',
-      where: {
-        [Op.or]: [
+      const profileWhere = {};
+      if (query) {
+        profileWhere[Op.or] = [
           { skills: { [Op.like]: `%${query}%` } },
           { bio: { [Op.like]: `%${query}%` } },
-          category ? { category: category } : {}
-        ]
+        ];
       }
-    }]
-  });
-},
+      return await User.findAll({
+        where: { role: 'FREELANCER' },
+        include: [{ model: Profile, as: 'profile', where: Object.keys(profileWhere).length ? profileWhere : undefined }],
+      });
+    },
+
+    popularCategories: async () => {
+      return ['Web Development', 'Graphic Design', 'Content Writing', 'Mobile Apps', 'Data Science', 'SEO & Marketing'];
+    },
   },
 
   Mutation: {
@@ -128,7 +149,22 @@ const resolvers = {
         await profile.update({ bio, skills, hourlyRate });
       }
       return profile;
-    }
+    },
+
+    submitContactForm: async (_, { name, email, message }) => {
+      return { id: Date.now().toString(), name, email, message };
+    },
+  },
+
+  Message: {
+    sender: async (message) => {
+      if (message.sender) return message.sender;
+      return await User.findByPk(message.senderId);
+    },
+    receiver: async (message) => {
+      if (message.receiver) return message.receiver;
+      return await User.findByPk(message.receiverId);
+    },
   },
 };
 

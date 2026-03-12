@@ -1,110 +1,189 @@
-import React from 'react';
+﻿import React from 'react';
 import { gql } from '@apollo/client';
 import { useQuery } from '@apollo/client/react/index.js';
-import { DollarSign, Briefcase, FileText, Bell, CheckCircle, Clock } from 'lucide-react';
+import { DollarSign, Briefcase, FileText, CheckCircle, Clock, TrendingUp, Plus, ExternalLink } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
-// 1. Query to fetch only THIS freelancer's proposals and jobs
 const GET_FREELANCER_DASHBOARD = gql`
   query GetFreelancerDashboard {
-    myProposals {  
-      id
-      status
-      bidAmount
-      job {
-        id
-        title
-        status
-        budget
-      }
+    myProposals {
+      id status bidAmount
+      job { id title status budget }
     }
   }
 `;
 
-// ... (imports and query stay the same)
+const StatusBadge = ({ status }) => {
+  const map = { ACCEPTED: 'badge-green', PENDING: 'badge-orange', REJECTED: 'badge-red', IN_PROGRESS: 'badge-blue' };
+  return <span className={`badge ${map[status] || 'badge'}`}>{status}</span>;
+};
+
+const SkeletonCard = () => (
+  <div className="card p-6 animate-pulse">
+    <div className="flex items-center gap-4">
+      <div className="w-14 h-14 bg-slate-200 rounded-2xl" />
+      <div className="flex-1 space-y-2">
+        <div className="h-4 bg-slate-200 rounded w-1/3" />
+        <div className="h-7 bg-slate-200 rounded w-1/2" />
+      </div>
+    </div>
+  </div>
+);
 
 const FreelancerDashboard = () => {
+  const username = localStorage.getItem('username') || 'Freelancer';
   const { loading, error, data } = useQuery(GET_FREELANCER_DASHBOARD);
 
-  if (loading) return <div className="p-10 text-center animate-pulse text-blue-600 font-bold">Loading Freelancer Stats...</div>;
-  if (error) return <div className="p-10 text-center text-red-500 bg-red-50 rounded-xl">Error: {error.message}</div>;
+  if (error) return (
+    <div className="page-wrapper py-12">
+      <div className="max-w-md mx-auto card p-8 text-center">
+        <p className="text-red-500 font-semibold">{error.message}</p>
+      </div>
+    </div>
+  );
 
-  // --- 3. FIXED LOGIC: Use 'myProposals' to match the query above ---
-  const activeProjects = data?.myProposals?.filter(p => p.status === 'ACCEPTED') || [];
-  const pendingBids = data?.myProposals?.filter(p => p.status === 'PENDING') || [];
+  const proposals = data?.myProposals || [];
+  const activeProjects = proposals.filter(p => p.status === 'ACCEPTED');
+  const pendingBids = proposals.filter(p => p.status === 'PENDING');
+  const totalEarnings = activeProjects.reduce((acc, p) => acc + (p.bidAmount || 0), 0);
+  const winRate = proposals.length > 0 ? Math.round((activeProjects.length / proposals.length) * 100) : 0;
 
   const stats = [
-    { 
-      label: 'Total Earnings', 
-      value: `$${activeProjects.reduce((acc, curr) => acc + (curr.bidAmount || 0), 0).toLocaleString()}`, 
-      icon: <DollarSign />, 
-      color: 'bg-green-500' 
-    },
-    { label: 'Active Projects', value: activeProjects.length, icon: <Briefcase />, color: 'bg-blue-500' },
-    { label: 'Pending Bids', value: pendingBids.length, icon: <FileText />, color: 'bg-orange-500' },
-    { label: 'Notifications', value: '5', icon: <Bell />, color: 'bg-purple-500' },
+    { label: 'Total Earnings', value: `$${totalEarnings.toLocaleString()}`, icon: DollarSign, color: 'bg-emerald-500', light: 'bg-emerald-50 text-emerald-600' },
+    { label: 'Active Projects', value: activeProjects.length, icon: Briefcase, color: 'bg-indigo-500', light: 'bg-indigo-50 text-indigo-600' },
+    { label: 'Pending Bids', value: pendingBids.length, icon: FileText, color: 'bg-amber-500', light: 'bg-amber-50 text-amber-600' },
+    { label: 'Win Rate', value: `${winRate}%`, icon: TrendingUp, color: 'bg-purple-500', light: 'bg-purple-50 text-purple-600' },
   ];
 
-  // ... (rest of the return statement stays exactly the same)
-
   return (
-    <div className="p-8 bg-slate-50 min-h-screen">
-      <h2 className="text-3xl font-black text-slate-900 mb-8 tracking-tight">Freelancer Workspace</h2>
-      
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-        {stats.map((stat, i) => (
-          <div key={i} className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex items-center gap-4 hover:shadow-md transition-shadow">
-            <div className={`${stat.color} p-4 rounded-2xl text-white shadow-lg`}>{stat.icon}</div>
-            <div>
-              <p className="text-slate-500 text-sm font-medium">{stat.label}</p>
-              <p className="text-2xl font-bold text-slate-900">{stat.value}</p>
+    <div className="page-wrapper py-10">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10">
+        <div>
+          <p className="text-sm font-medium text-indigo-600 mb-1">Welcome back</p>
+          <h1 className="text-3xl font-extrabold text-slate-900">@{username}</h1>
+          <p className="text-slate-500 mt-1">Here's your workspace overview</p>
+        </div>
+        <div className="flex gap-3">
+          <Link to="/create-profile" className="btn-secondary"><FileText size={16} /> Edit Profile</Link>
+          <Link to="/jobs" className="btn-primary"><Plus size={16} /> Find Work</Link>
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-10">
+        {loading ? [1,2,3,4].map(i => <SkeletonCard key={i} />) : stats.map((s) => {
+          const Icon = s.icon;
+          return (
+            <div key={s.label} className="card card-hover p-6">
+              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-4 ${s.light}`}>
+                <Icon size={22} />
+              </div>
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">{s.label}</p>
+              <p className="text-2xl font-extrabold text-slate-900 mt-1">{s.value}</p>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <div className="grid lg:grid-cols-2 gap-8">
-        {/* Active Projects List (#13) */}
-        <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
-          <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
-            <CheckCircle className="text-blue-500" size={20}/> Active Projects
-          </h3>
-          {activeProjects.length > 0 ? (
-            <div className="space-y-4">
+        {/* Active Projects */}
+        <div className="card p-8">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+              <CheckCircle className="text-emerald-500" size={20} /> Active Projects
+            </h3>
+            <span className="badge badge-green">{activeProjects.length}</span>
+          </div>
+          {loading ? (
+            <div className="space-y-3">{[1,2].map(i => <div key={i} className="h-16 bg-slate-100 rounded-xl animate-pulse" />)}</div>
+          ) : activeProjects.length > 0 ? (
+            <div className="space-y-3">
               {activeProjects.map((p) => (
-                <div key={p.id} className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex justify-between items-center">
-                  <div>
-                    <h4 className="font-bold text-slate-900">{p.job.title}</h4>
-                    <p className="text-sm text-slate-500">Earnings: ${p.bidAmount}</p>
+                <div key={p.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100 hover:border-indigo-200 transition-colors group">
+                  <div className="min-w-0">
+                    <p className="font-semibold text-slate-900 truncate">{p.job.title}</p>
+                    <p className="text-sm text-slate-500">Bid: <span className="font-semibold text-emerald-600">${Number(p.bidAmount).toLocaleString()}</span></p>
                   </div>
-                  <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">IN PROGRESS</span>
+                  <ExternalLink size={16} className="text-slate-300 group-hover:text-indigo-500 transition-colors ml-3 shrink-0" />
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-slate-400 text-center py-10">No active projects yet. Start bidding!</p>
+            <div className="py-10 text-center">
+              <div className="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                <Briefcase className="text-slate-400" size={22} />
+              </div>
+              <p className="text-slate-500 text-sm font-medium">No active projects yet</p>
+              <Link to="/jobs" className="text-indigo-600 text-sm font-semibold hover:underline mt-1 inline-block">Browse open jobs â†’</Link>
+            </div>
           )}
         </div>
-        
-        {/* Pending Bids Section */}
-        <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
-          <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
-            <Clock className="text-orange-500" size={20}/> My Pending Bids
-          </h3>
-          {pendingBids.length > 0 ? (
-            <div className="space-y-4">
-               {pendingBids.map((p) => (
-                <div key={p.id} className="p-4 border-b border-slate-50 last:border-0 flex justify-between items-center">
-                  <span className="text-slate-700 font-medium">{p.job.title}</span>
-                  <span className="text-slate-400 text-sm">${p.bidAmount}</span>
+
+        {/* Pending Bids */}
+        <div className="card p-8">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+              <Clock className="text-amber-500" size={20} /> Pending Bids
+            </h3>
+            <span className="badge badge-orange">{pendingBids.length}</span>
+          </div>
+          {loading ? (
+            <div className="space-y-3">{[1,2,3].map(i => <div key={i} className="h-14 bg-slate-100 rounded-xl animate-pulse" />)}</div>
+          ) : pendingBids.length > 0 ? (
+            <div className="divide-y divide-slate-100">
+              {pendingBids.map((p) => (
+                <div key={p.id} className="py-4 flex items-center justify-between">
+                  <div className="min-w-0">
+                    <p className="font-semibold text-slate-900 truncate text-sm">{p.job.title}</p>
+                    <p className="text-xs text-slate-400">Client budget: ${Number(p.job.budget).toLocaleString()}</p>
+                  </div>
+                  <div className="flex items-center gap-2 ml-3 shrink-0">
+                    <span className="text-sm font-bold text-amber-600">${Number(p.bidAmount).toLocaleString()}</span>
+                    <StatusBadge status={p.status} />
+                  </div>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-slate-400 text-center py-10">No pending bids.</p>
+            <div className="py-10 text-center">
+              <div className="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                <FileText className="text-slate-400" size={22} />
+              </div>
+              <p className="text-slate-500 text-sm font-medium">No pending bids</p>
+              <Link to="/jobs" className="text-indigo-600 text-sm font-semibold hover:underline mt-1 inline-block">Apply to jobs â†’</Link>
+            </div>
           )}
         </div>
       </div>
+
+      {/* All proposals table */}
+      {!loading && proposals.length > 0 && (
+        <div className="card p-8 mt-8">
+          <h3 className="text-lg font-extrabold text-slate-900 mb-6">All Proposals</h3>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-slate-100">
+                  {['Job Title', 'Budget', 'Your Bid', 'Status'].map(h => (
+                    <th key={h} className="text-left pb-3 pr-6 text-xs font-bold text-slate-400 uppercase tracking-widest">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-50">
+                {proposals.map(p => (
+                  <tr key={p.id} className="hover:bg-slate-50 transition-colors">
+                    <td className="py-4 pr-6 font-semibold text-slate-900">{p.job.title}</td>
+                    <td className="py-4 pr-6 text-slate-500">${Number(p.job.budget).toLocaleString()}</td>
+                    <td className="py-4 pr-6 font-semibold text-indigo-600">${Number(p.bidAmount).toLocaleString()}</td>
+                    <td className="py-4"><StatusBadge status={p.status} /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
