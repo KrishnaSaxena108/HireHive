@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { gql } from '@apollo/client';
 import { useQuery, useMutation } from '@apollo/client/react/index.js';
 import { Bell, Check } from 'lucide-react';
+import { socket } from '../socket';
 
 const GET_NOTIFICATIONS = gql`
   query Notifications($userId: ID!) {
@@ -29,6 +30,22 @@ const NotificationBell = () => {
     variables: { userId },
     skip: !userId
   });
+
+  useEffect(() => {
+    if (userId) {
+      socket.emit('register_private_room', userId);
+      
+      const handleNotification = () => {
+        refetch();
+      };
+      
+      socket.on('notification', handleNotification);
+
+      return () => {
+        socket.off('notification', handleNotification);
+      };
+    }
+  }, [userId, refetch]);
 
   const [markRead] = useMutation(MARK_READ, {
     onCompleted: () => refetch()

@@ -65,7 +65,7 @@ const JobDetail = () => {
 
   if (!job) return <div className="p-10 text-center">Job not found</div>;
 
-  const userRole = localStorage.getItem('role');
+  const userRole = localStorage.getItem('userRole');
   const canApply = userRole === 'FREELANCER' && job.status === 'OPEN';
 
   // Filter related jobs (exclude current job, limit to 3)

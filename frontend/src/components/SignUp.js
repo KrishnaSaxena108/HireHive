@@ -26,11 +26,14 @@ const SignUp = () => {
   const [register, { loading, error }] = useMutation(REGISTER_USER, {
     onCompleted: (data) => {
       localStorage.setItem('token', data.register.token);
-      localStorage.setItem('role', data.register.user.role);
+      localStorage.setItem('userRole', data.register.user.role);
       // store user id if returned
       if (data.register.user.id) {
         localStorage.setItem('userId', data.register.user.id);
       }
+      
+      // Dispatch event so Navbar re-renders immediately
+      window.dispatchEvent(new Event('authChange'));
       alert("Registration Successful!");
       
       // Redirect based on role

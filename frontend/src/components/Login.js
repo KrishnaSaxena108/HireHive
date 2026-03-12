@@ -25,8 +25,11 @@ const Login = () => {
   const [login, { loading, error }] = useMutation(LOGIN_USER, {
     onCompleted: (data) => {
       localStorage.setItem('token', data.login.token);
-      localStorage.setItem('role', data.login.user.role);
+      localStorage.setItem('userRole', data.login.user.role);
       localStorage.setItem('userId', data.login.user.id);
+      
+      // Dispatch event so Navbar re-renders immediately
+      window.dispatchEvent(new Event('authChange'));
       // Redirect based on role
       if (data.login.user.role === 'FREELANCER') {
         navigate('/freelancer-dashboard');

@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { gql } from '@apollo/client';
 import { useQuery } from '@apollo/client/react/index.js';
 import { DollarSign, Briefcase, FileText, Bell, CheckCircle, Clock } from 'lucide-react';
+import { socket } from '../socket';
 
 // 1. Query to fetch only THIS freelancer's proposals and jobs
 const GET_FREELANCER_DASHBOARD = gql`
-  query GetFreelancerDashboard {
+  query GetFreelancerDashboard($userId: ID!) {
     me {
       id
       username
@@ -22,13 +23,39 @@ const GET_FREELANCER_DASHBOARD = gql`
         budget
       }
     }
+    notifications(userId: $userId) {
+      id
+      isRead
+    }
   }
 `;
 
 // ... (imports and query stay the same)
 
 const FreelancerDashboard = () => {
-  const { loading, error, data } = useQuery(GET_FREELANCER_DASHBOARD);
+  const userId = localStorage.getItem('userId');
+  const { loading, error, data, refetch } = useQuery(GET_FREELANCER_DASHBOARD, {
+    variables: { userId },
+    skip: !userId
+  });
+
+  useEffect(() => {
+    if (userId) {
+      socket.emit('register_private_room', userId);
+
+      const handleUpdate = () => {
+        refetch();
+      };
+
+      socket.on('proposal_accepted', handleUpdate);
+      socket.on('notification', handleUpdate);
+
+      return () => {
+        socket.off('proposal_accepted', handleUpdate);
+        socket.off('notification', handleUpdate);
+      };
+    }
+  }, [userId, refetch]);
 
   if (loading) return <div className="p-10 text-center animate-pulse text-blue-600 font-bold">Loading Freelancer Stats...</div>;
   if (error) return <div className="p-10 text-center text-red-500 bg-red-50 rounded-xl">Error: {error.message}</div>;
@@ -39,6 +66,8 @@ const FreelancerDashboard = () => {
   const activeProjects = data?.myProposals?.filter(p => p.status === 'ACCEPTED') || [];
   const pendingBids = data?.myProposals?.filter(p => p.status === 'PENDING') || [];
 
+  const unreadNotificationsCount = data?.notifications?.filter(n => !n.isRead).length || 0;
+
   const stats = [
     { 
       label: 'Total Earnings', 
@@ -48,7 +77,7 @@ const FreelancerDashboard = () => {
     },
     { label: 'Active Projects', value: activeProjects.length, icon: <Briefcase />, color: 'bg-blue-500' },
     { label: 'Pending Bids', value: pendingBids.length, icon: <FileText />, color: 'bg-orange-500' },
-    { label: 'Notifications', value: '5', icon: <Bell />, color: 'bg-purple-500' },
+    { label: 'Notifications', value: unreadNotificationsCount.toString(), icon: <Bell />, color: 'bg-purple-500' },
   ];
 
   // ... (rest of the return statement stays exactly the same)
