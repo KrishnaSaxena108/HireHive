@@ -186,7 +186,7 @@ const Messages = () => {
   if (!userId) {
     return (
       <div className="p-10 text-center">
-        Please <a href="/login" className="text-indigo-600 font-semibold">log in</a> to view your messages.
+        Please <a href="/login" className="text-teal-600 font-semibold">log in</a> to view your messages.
       </div>
     );
   }
@@ -204,12 +204,12 @@ const Messages = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-6 bg-slate-50 min-h-screen">
+    <div className="max-w-6xl mx-auto p-4 md:p-6 min-h-screen">
       <h1 className="text-3xl font-black text-slate-900 mb-8">Messages</h1>
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Conversations List */}
-        <div className="bg-white rounded-3xl shadow-xl p-6">
+        <div className="ui-glass rounded-3xl p-6">
           <h2 className="text-xl font-bold mb-4">Conversations</h2>
           {conversationList.length === 0 ? (
             <p className="text-slate-500">No messages yet</p>
@@ -221,13 +221,13 @@ const Messages = () => {
                   onClick={() => setSelectedConversation(conv)}
                   className={`p-4 rounded-xl cursor-pointer transition ${
                     selectedConversation?.user.id === conv.user.id
-                      ? 'bg-indigo-100 border border-indigo-300'
-                      : 'bg-slate-50 hover:bg-slate-100'
+                      ? 'bg-teal-100/80 border border-teal-300'
+                      : 'bg-white/80 hover:bg-slate-100'
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
-                      <User size={20} className="text-indigo-600" />
+                    <div className="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center">
+                      <User size={20} className="text-teal-600" />
                     </div>
                     <div>
                       <p className="font-bold text-slate-900">{conv.user.username}</p>
@@ -243,12 +243,12 @@ const Messages = () => {
         </div>
 
         {/* Messages */}
-        <div className="lg:col-span-2 bg-white rounded-3xl shadow-xl p-6">
+        <div className="lg:col-span-2 ui-glass rounded-3xl p-6">
           {selectedConversation ? (
             <>
               <div className="flex items-center gap-3 mb-6 pb-4 border-b">
-                <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center">
-                  <User size={24} className="text-indigo-600" />
+                <div className="w-12 h-12 bg-teal-100 rounded-full flex items-center justify-center">
+                  <User size={24} className="text-teal-600" />
                 </div>
                 <h2 className="text-xl font-bold">{selectedConversation.user.username}</h2>
               </div>
@@ -264,12 +264,12 @@ const Messages = () => {
                     <div
                       className={`max-w-xs px-4 py-2 rounded-2xl ${
                         msg.senderId === userId
-                          ? 'bg-indigo-600 text-white'
-                          : 'bg-slate-100 text-slate-900'
+                          ? 'bg-gradient-to-r from-teal-500 to-cyan-500 text-white shadow-md shadow-teal-500/25'
+                          : 'bg-slate-100/90 text-slate-900'
                       }`}
                     >
                       <p>{msg.content}</p>
-                      <p className={`text-xs mt-1 ${msg.senderId === userId ? 'text-indigo-200' : 'text-slate-500'}`}>
+                      <p className={`text-xs mt-1 ${msg.senderId === userId ? 'text-teal-100' : 'text-slate-500'}`}>
                         {new Date(msg.createdAt).toLocaleString()}
                       </p>
                     </div>
@@ -284,12 +284,12 @@ const Messages = () => {
                   onChange={(e) => setNewMessage(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                   placeholder="Type a message..."
-                  className="flex-1 px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
+                  className="flex-1 px-4 py-3 border border-slate-300 bg-white/90 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none"
                 />
                 <button
                   onClick={handleSendMessage}
                   disabled={!newMessage.trim()}
-                  className="px-6 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition disabled:opacity-50"
+                  className="px-6 py-3 bg-gradient-to-r from-teal-500 to-cyan-500 text-white rounded-xl hover:shadow-lg hover:shadow-teal-500/25 transition disabled:opacity-50"
                 >
                   <Send size={20} />
                 </button>

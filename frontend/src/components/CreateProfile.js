@@ -95,7 +95,7 @@ const CreateProfile = () => {
   if (profileLoading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <Loader className="animate-spin text-indigo-600" size={32} />
+        <Loader className="animate-spin text-teal-600" size={32} />
       </div>
     );
   }
@@ -103,11 +103,11 @@ const CreateProfile = () => {
   const isEditing = !!profileData?.me?.profile;
 
   return (
-    <div className="min-h-screen bg-slate-50 py-12 px-4">
-      <div className="max-w-3xl mx-auto bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-100">
-        <div className="bg-indigo-600 p-8 text-white">
+    <div className="min-h-screen py-12 px-4">
+      <div className="max-w-3xl mx-auto ui-glass rounded-3xl overflow-hidden border border-slate-100">
+        <div className="bg-gradient-to-r from-teal-500 to-cyan-500 p-8 text-white">
           <h2 className="text-3xl font-black">{isEditing ? 'Edit Your Profile' : 'Create Your Professional Profile'}</h2>
-          <p className="text-indigo-100 mt-2 text-lg">Tell clients why you're the perfect fit.</p>
+          <p className="text-teal-50 mt-2 text-lg">Tell clients why you're the perfect fit.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="p-10 space-y-8">
@@ -126,7 +126,7 @@ const CreateProfile = () => {
             </label>
             <textarea 
               placeholder="Describe your experience and what you can offer..."
-              className="w-full p-4 h-40 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-indigo-100 focus:border-indigo-600 outline-none transition-all"
+              className="w-full p-4 h-40 rounded-2xl border border-slate-200 bg-white/90 focus:ring-4 focus:ring-teal-100 focus:border-teal-600 outline-none transition-all"
               value={formData.bio}
               onChange={(e) => setFormData({...formData, bio: e.target.value})}
             />
@@ -140,7 +140,7 @@ const CreateProfile = () => {
             <select
               value={formData.category}
               onChange={(e) => setFormData({...formData, category: e.target.value})}
-              className="w-full p-4 rounded-xl border border-slate-200 focus:ring-4 focus:ring-indigo-100 focus:border-indigo-600 outline-none transition-all"
+              className="w-full p-4 rounded-xl border border-slate-200 bg-white/90 focus:ring-4 focus:ring-teal-100 focus:border-teal-600 outline-none transition-all"
             >
               <option value="WEB_DEV">Web Development</option>
               <option value="MOBILE_DEV">Mobile Development</option>
@@ -160,7 +160,7 @@ const CreateProfile = () => {
               <input 
                 type="text" 
                 placeholder="React, Node.js, Design..."
-                className="w-full p-4 rounded-xl border border-slate-200 focus:ring-4 focus:ring-indigo-100 focus:border-indigo-600 outline-none transition-all"
+                className="w-full p-4 rounded-xl border border-slate-200 bg-white/90 focus:ring-4 focus:ring-teal-100 focus:border-teal-600 outline-none transition-all"
                 value={formData.skills}
                 onChange={(e) => setFormData({...formData, skills: e.target.value})}
               />
@@ -174,7 +174,7 @@ const CreateProfile = () => {
               <input 
                 type="number" 
                 placeholder="25"
-                className="w-full p-4 rounded-xl border border-slate-200 focus:ring-4 focus:ring-indigo-100 focus:border-indigo-600 outline-none transition-all"
+                className="w-full p-4 rounded-xl border border-slate-200 bg-white/90 focus:ring-4 focus:ring-teal-100 focus:border-teal-600 outline-none transition-all"
                 value={formData.hourlyRate}
                 onChange={(e) => setFormData({...formData, hourlyRate: e.target.value})}
               />
@@ -189,7 +189,7 @@ const CreateProfile = () => {
             <select
               value={formData.availability}
               onChange={(e) => setFormData({...formData, availability: e.target.value})}
-              className="w-full p-4 rounded-xl border border-slate-200 focus:ring-4 focus:ring-indigo-100 focus:border-indigo-600 outline-none transition-all"
+              className="w-full p-4 rounded-xl border border-slate-200 bg-white/90 focus:ring-4 focus:ring-teal-100 focus:border-teal-600 outline-none transition-all"
             >
               <option value="FULL_TIME">Full Time</option>
               <option value="PART_TIME">Part Time</option>
@@ -209,7 +209,7 @@ const CreateProfile = () => {
           <button 
             type="submit"
             disabled={saving}
-            className="w-full bg-indigo-600 text-white py-4 rounded-2xl text-xl font-black shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-3"
+            className="w-full bg-gradient-to-r from-teal-500 to-cyan-500 text-white py-4 rounded-2xl text-xl font-black shadow-xl shadow-teal-100 hover:shadow-2xl hover:shadow-teal-500/25 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-3"
           >
             {saving ? (
               <>

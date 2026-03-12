@@ -60,7 +60,7 @@ const JobDetail = () => {
     skip: !job?.category
   });
 
-  if (loading) return <div className="p-10 text-center">Loading job details...</div>;
+  if (loading) return <div className="p-10 text-center text-teal-700">Loading job details...</div>;
   if (error) return <div className="p-10 text-center text-red-500">Error: {error.message}</div>;
 
   if (!job) return <div className="p-10 text-center">Job not found</div>;
@@ -74,12 +74,12 @@ const JobDetail = () => {
     .slice(0, 3);
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <Link to="/browse" className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-800 mb-6">
+    <div className="max-w-4xl mx-auto p-4 md:p-6">
+      <Link to="/browse" className="inline-flex items-center gap-2 text-teal-600 hover:text-teal-800 mb-6 font-semibold">
         <ArrowLeft size={20} /> Back to Jobs
       </Link>
 
-      <div className="bg-white rounded-3xl shadow-xl p-8">
+      <div className="ui-glass rounded-3xl p-8">
         {/* Header */}
         <div className="flex justify-between items-start mb-6">
           <div>
@@ -91,7 +91,7 @@ const JobDetail = () => {
               </div>
               <div className="flex items-center gap-1">
                 <Briefcase size={16} />
-                <span>{job.category}</span>
+                  <span className="font-semibold">{job.category}</span>
               </div>
               <div className="flex items-center gap-1">
                 <DollarSign size={16} />
@@ -110,7 +110,7 @@ const JobDetail = () => {
 
         {/* Description */}
         <div className="mb-8">
-          <h2 className="text-xl font-bold mb-4">Project Description</h2>
+              <h2 className="text-xl font-bold mb-4">Project Description</h2>
           <p className="text-slate-700 leading-relaxed">{job.description}</p>
         </div>
 
@@ -125,7 +125,7 @@ const JobDetail = () => {
         {canApply && (
           <button
             onClick={() => setShowApplyModal(true)}
-            className="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold hover:bg-indigo-700 transition shadow-lg"
+            className="w-full bg-gradient-to-r from-teal-500 to-cyan-500 text-white py-4 rounded-xl font-bold hover:shadow-lg hover:shadow-teal-500/25 transition"
           >
             Submit Proposal
           </button>
@@ -147,17 +147,17 @@ const JobDetail = () => {
               <Link
                 key={relatedJob.id}
                 to={`/job/${relatedJob.id}`}
-                className="group bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-lg hover:border-indigo-100 transition-all"
+                className="group ui-glass ui-card-hover p-6 rounded-2xl border border-slate-100"
               >
                 <div className="flex justify-between items-start mb-3">
-                  <div className="p-2 bg-indigo-50 rounded-lg text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                  <div className="p-2 bg-teal-50 rounded-lg text-teal-600 group-hover:bg-teal-500 group-hover:text-white transition-colors">
                     <Briefcase size={20} />
                   </div>
                   <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">
                     {relatedJob.status}
                   </span>
                 </div>
-                <h3 className="font-bold text-slate-900 mb-2 group-hover:text-indigo-600">{relatedJob.title}</h3>
+                <h3 className="font-bold text-slate-900 mb-2 group-hover:text-teal-600">{relatedJob.title}</h3>
                 <p className="text-sm text-slate-500 line-clamp-2 mb-4">{relatedJob.description}</p>
                 <div className="flex items-center gap-2 font-bold text-green-600">
                   <DollarSign size={16} />

@@ -181,16 +181,16 @@ const AdminDashboard = () => {
   const proposals = proposalsData?.adminProposals || [];
 
   return (
-    <div className="min-h-screen bg-slate-50 py-8 px-4">
+    <div className="min-h-screen py-8 px-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="bg-white rounded-3xl shadow-xl p-8 mb-8">
+        <div className="ui-glass rounded-3xl p-8 mb-8">
           <h1 className="text-4xl font-black text-slate-900 mb-2">Admin Dashboard</h1>
           <p className="text-slate-600 text-lg">Manage users, jobs, and platform content</p>
         </div>
 
         {/* Tabs */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
+        <div className="ui-glass rounded-2xl p-6 mb-8">
           <div className="flex space-x-1">
             {tabs.map((tab) => (
               <button
@@ -198,7 +198,7 @@ const AdminDashboard = () => {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all ${
                   activeTab === tab.id
-                    ? 'bg-indigo-600 text-white shadow-lg'
+                    ? 'bg-gradient-to-r from-teal-500 to-cyan-500 text-white shadow-lg shadow-teal-500/25'
                     : 'text-slate-600 hover:bg-slate-100'
                 }`}
               >
@@ -210,7 +210,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* Content */}
-        <div className="bg-white rounded-3xl shadow-xl p-8">
+        <div className="ui-glass rounded-3xl p-8">
           {/* Stats Dashboard */}
           {activeTab === 'stats' && (
             <div>
@@ -218,7 +218,7 @@ const AdminDashboard = () => {
               
               {statsLoading ? (
                 <div className="flex justify-center items-center h-64">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600"></div>
                 </div>
               ) : statsError ? (
                 <p className="text-red-500 text-center py-8">Error loading stats: {statsError.message}</p>
@@ -265,12 +265,12 @@ const AdminDashboard = () => {
               
               {usersLoading ? (
                 <div className="flex justify-center items-center h-64">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600"></div>
                 </div>
               ) : usersError ? (
                 <p className="text-red-500 text-center py-8">Error loading users: {usersError.message}</p>
               ) : (
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white/80">
                   <table className="w-full">
                     <thead>
                       <tr className="border-b border-slate-200">
@@ -348,12 +348,12 @@ const AdminDashboard = () => {
               
               {jobsLoading ? (
                 <div className="flex justify-center items-center h-64">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600"></div>
                 </div>
               ) : jobsError ? (
                 <p className="text-red-500 text-center py-8">Error loading jobs: {jobsError.message}</p>
               ) : (
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white/80">
                   <table className="w-full">
                     <thead>
                       <tr className="border-b border-slate-200">
@@ -406,12 +406,12 @@ const AdminDashboard = () => {
               
               {proposalsLoading ? (
                 <div className="flex justify-center items-center h-64">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600"></div>
                 </div>
               ) : proposalsError ? (
                 <p className="text-red-500 text-center py-8">Error loading proposals: {proposalsError.message}</p>
               ) : (
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white/80">
                   <table className="w-full">
                     <thead>
                       <tr className="border-b border-slate-200">
@@ -458,8 +458,8 @@ const AdminDashboard = () => {
 
         {/* Confirmation Modal */}
         {confirmAction && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="ui-glass rounded-2xl p-8 max-w-md w-full mx-4">
               <div className="flex items-center gap-3 mb-4">
                 <AlertTriangle className="text-yellow-500" size={24} />
                 <h3 className="text-xl font-bold text-slate-900">Confirm Action</h3>

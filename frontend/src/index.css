@@ -1,3 +1,172 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+	--bg-primary: #f5f7fb;
+	--bg-secondary: #ffffff;
+	--text-primary: #0f172a;
+	--text-secondary: #475569;
+	--brand-primary: #0ea5a4;
+	--brand-primary-dark: #0b8a89;
+	--brand-accent: #fb923c;
+	--border-soft: rgba(148, 163, 184, 0.28);
+	--shadow-soft: 0 10px 30px rgba(15, 23, 42, 0.08);
+}
+
+* {
+	box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+	min-height: 100%;
+}
+
+body {
+	margin: 0;
+	color: var(--text-primary);
+	font-family: 'Manrope', sans-serif;
+	background:
+		radial-gradient(circle at 18% 15%, rgba(14, 165, 164, 0.15), transparent 32%),
+		radial-gradient(circle at 82% 20%, rgba(251, 146, 60, 0.16), transparent 30%),
+		radial-gradient(circle at 30% 80%, rgba(56, 189, 248, 0.12), transparent 30%),
+		linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+	background-attachment: fixed;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	font-family: 'Sora', sans-serif;
+	letter-spacing: -0.015em;
+}
+
+a,
+button,
+input,
+textarea,
+select {
+	transition: all 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+a:focus-visible {
+	outline: 3px solid rgba(14, 165, 164, 0.25);
+	outline-offset: 2px;
+}
+
+.app-shell {
+	min-height: 100vh;
+	position: relative;
+	overflow-x: hidden;
+}
+
+.app-glow {
+	pointer-events: none;
+	position: fixed;
+	z-index: 0;
+	border-radius: 9999px;
+	filter: blur(60px);
+	opacity: 0.52;
+	animation: drift 14s ease-in-out infinite alternate;
+}
+
+.app-glow-a {
+	width: 24rem;
+	height: 24rem;
+	left: -7rem;
+	top: 4rem;
+	background: rgba(14, 165, 164, 0.32);
+}
+
+.app-glow-b {
+	width: 20rem;
+	height: 20rem;
+	right: -5rem;
+	top: 20rem;
+	background: rgba(251, 146, 60, 0.28);
+	animation-delay: 1.2s;
+}
+
+.app-glow-c {
+	width: 18rem;
+	height: 18rem;
+	right: 20%;
+	bottom: -5rem;
+	background: rgba(56, 189, 248, 0.22);
+	animation-delay: 2.2s;
+}
+
+.app-content {
+	position: relative;
+	z-index: 1;
+}
+
+.route-fade {
+	animation: pageEnter 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.app-footer {
+	position: relative;
+	z-index: 1;
+	margin: 2.5rem 1rem 1rem;
+	border: 1px solid var(--border-soft);
+	background: rgba(255, 255, 255, 0.72);
+	backdrop-filter: blur(8px);
+	border-radius: 1.1rem;
+	box-shadow: var(--shadow-soft);
+}
+
+.ui-glass {
+	border: 1px solid var(--border-soft);
+	background: rgba(255, 255, 255, 0.78);
+	backdrop-filter: blur(10px);
+	box-shadow: var(--shadow-soft);
+}
+
+.ui-card-hover {
+	transform: translateY(0);
+}
+
+.ui-card-hover:hover {
+	transform: translateY(-4px);
+	box-shadow: 0 16px 28px rgba(15, 23, 42, 0.12);
+}
+
+@keyframes pageEnter {
+	from {
+		opacity: 0;
+		transform: translateY(12px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes drift {
+	from {
+		transform: translateY(0) scale(1);
+	}
+	to {
+		transform: translateY(-20px) scale(1.08);
+	}
+}
+
+@media (max-width: 768px) {
+	.app-glow-a,
+	.app-glow-b,
+	.app-glow-c {
+		transform: scale(0.7);
+	}
+}

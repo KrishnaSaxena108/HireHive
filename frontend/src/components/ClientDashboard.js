@@ -73,7 +73,7 @@ const ClientDashboard = () => {
     refetchQueries: [{ query: GET_CLIENT_JOBS }] 
   });
 
-  if (loading) return <div className="p-10 text-center animate-pulse text-indigo-600 font-bold">Loading Your Workspace...</div>;
+  if (loading) return <div className="p-10 text-center animate-pulse text-teal-600 font-bold">Loading Your Workspace...</div>;
   if (error) return <div className="p-10 text-center text-red-500 bg-red-50 rounded-xl">Error: {error.message}</div>;
 
   // Filter jobs to only show those belonging to the current client
@@ -85,13 +85,13 @@ const ClientDashboard = () => {
   const totalProposals = myJobs.reduce((acc, job) => acc + (job.proposals?.length || 0), 0);
 
   return (
-    <div className="p-4 md:p-8 bg-slate-50 min-h-screen">
+    <div className="p-4 md:p-8 min-h-screen">
       
       {/* --- HERO SECTION --- */}
-      <div className="bg-indigo-600 rounded-3xl p-8 md:p-12 mb-10 text-white shadow-xl flex flex-col md:flex-row items-center justify-between">
+      <div className="bg-gradient-to-r from-teal-500 to-cyan-500 rounded-3xl p-8 md:p-12 mb-10 text-white shadow-xl flex flex-col md:flex-row items-center justify-between">
         <div>
           <h2 className="text-4xl font-black mb-2">Client Workspace</h2>
-          <p className="text-indigo-100 text-lg mb-6">Manage your projects, review bids, and hire top talent.</p>
+          <p className="text-teal-50 text-lg mb-6">Manage your projects, review bids, and hire top talent.</p>
           
           <div className="flex gap-6 text-sm font-medium">
             <div className="bg-white/10 px-4 py-2 rounded-xl backdrop-blur-sm">
@@ -111,7 +111,7 @@ const ClientDashboard = () => {
         
         <Link 
           to="/post-job" 
-          className="mt-8 md:mt-0 bg-white text-indigo-600 font-bold px-8 py-4 rounded-2xl shadow-lg hover:bg-slate-50 hover:scale-105 transition-all flex items-center gap-3 text-lg"
+          className="mt-8 md:mt-0 bg-white text-teal-700 font-bold px-8 py-4 rounded-2xl shadow-lg hover:bg-slate-50 hover:scale-105 transition-all flex items-center gap-3 text-lg"
         >
           <PlusCircle size={24} /> Post New Project
         </Link>
@@ -119,7 +119,7 @@ const ClientDashboard = () => {
 
       {/* --- JOB LISTINGS --- */}
       <h3 className="text-2xl font-black text-slate-800 mb-6 flex items-center gap-2">
-        <Briefcase className="text-indigo-500" /> My Projects
+        <Briefcase className="text-teal-500" /> My Projects
       </h3>
 
       {myJobs.length === 0 ? (
@@ -129,7 +129,7 @@ const ClientDashboard = () => {
           </div>
           <h4 className="text-xl font-bold text-slate-800 mb-2">No projects yet</h4>
           <p className="text-slate-500 mb-6 max-w-md mx-auto">You haven't posted any jobs. Create your first project to start receiving bids from talented freelancers.</p>
-          <Link to="/post-job" className="inline-flex items-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-indigo-700 transition">
+          <Link to="/post-job" className="inline-flex items-center gap-2 bg-gradient-to-r from-teal-500 to-cyan-500 text-white px-6 py-3 rounded-xl font-bold hover:shadow-lg hover:shadow-teal-500/25 transition">
             <PlusCircle size={20} /> Post a Job
           </Link>
         </div>
@@ -138,7 +138,7 @@ const ClientDashboard = () => {
           {myJobs.map((job) => {
             const acceptedProposal = getAcceptedProposal(job);
             return (
-            <div key={job.id} className="bg-white rounded-3xl shadow-md border border-slate-200 overflow-hidden transition-all hover:shadow-lg">
+            <div key={job.id} className="ui-glass rounded-3xl border border-slate-200 overflow-hidden transition-all hover:shadow-lg">
               
               {/* Job Status Bar */}
               <div className={`h-2 w-full ${
@@ -160,10 +160,10 @@ const ClientDashboard = () => {
                     </span>
                     <span className="text-xs font-bold text-slate-400 uppercase tracking-wide bg-slate-100 px-3 py-1 rounded-full">{job.category}</span>
                   </div>
-                  <h3 className="text-2xl font-black text-slate-900 group-hover:text-indigo-600 transition-colors">{job.title}</h3>
+                  <h3 className="text-2xl font-black text-slate-900 group-hover:text-teal-600 transition-colors">{job.title}</h3>
                 </div>
                 
-                <div className="flex items-center gap-2 bg-indigo-50 px-4 py-2 rounded-xl text-indigo-700 font-bold border border-indigo-100">
+                <div className="flex items-center gap-2 bg-teal-50 px-4 py-2 rounded-xl text-teal-700 font-bold border border-teal-100">
                   <DollarSign size={18} />
                   <span>{job.budget.toLocaleString()}</span>
                 </div>
@@ -230,7 +230,7 @@ const ClientDashboard = () => {
                   <div className="grid gap-4">
                     {job.proposals.map((proposal) => (
                       <div key={proposal.id} className={`bg-white p-5 rounded-2xl border transition-all flex flex-col md:flex-row justify-between gap-6 shadow-sm ${
-                        proposal.status === 'ACCEPTED' ? 'border-green-300 bg-green-50/30' : 'border-slate-200 hover:border-indigo-300'
+                        proposal.status === 'ACCEPTED' ? 'border-green-300 bg-green-50/30' : 'border-slate-200 hover:border-teal-300'
                       }`}>
                         
                         <div className="flex-1">
@@ -243,7 +243,7 @@ const ClientDashboard = () => {
                                 </span>
                               )}
                             </span>
-                            <span className="font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-lg text-sm border border-indigo-100">
+                            <span className="font-bold text-teal-600 bg-teal-50 px-3 py-1 rounded-lg text-sm border border-teal-100">
                               Bid: ${proposal.bidAmount}
                             </span>
                           </div>
@@ -258,7 +258,7 @@ const ClientDashboard = () => {
                           {/* Chat Button */}
                           <button 
                             onClick={() => navigate(`/messages?user=${proposal.freelancer?.id}&username=${encodeURIComponent(proposal.freelancer?.username || '')}`)}
-                            className="w-full justify-center md:w-auto flex items-center gap-2 px-5 py-2.5 bg-white border-2 border-slate-200 text-slate-600 rounded-xl hover:border-indigo-600 hover:text-indigo-600 font-bold transition group"
+                            className="w-full justify-center md:w-auto flex items-center gap-2 px-5 py-2.5 bg-white border-2 border-slate-200 text-slate-600 rounded-xl hover:border-teal-600 hover:text-teal-600 font-bold transition group"
                             title="Discuss with freelancer"
                           >
                             <MessageCircle size={18} className="group-hover:scale-110 transition-transform" />
@@ -274,7 +274,7 @@ const ClientDashboard = () => {
                                   acceptProposal({ variables: { proposalId: proposal.id } });
                                 }
                               }}
-                              className="w-full justify-center md:w-auto flex items-center gap-2 px-6 py-2.5 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 hover:shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-50"
+                              className="w-full justify-center md:w-auto flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-teal-500 to-cyan-500 text-white rounded-xl font-bold hover:shadow-lg hover:shadow-teal-500/25 hover:-translate-y-0.5 transition-all disabled:opacity-50"
                             >
                               {hiring ? "Processing..." : "Hire Talent"}
                             </button>

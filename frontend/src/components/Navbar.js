@@ -61,64 +61,65 @@ const Navbar = () => {
   const profilePictureUrl = profileData?.me?.profilePictureUrl;
 
   return (
-    <nav className="flex items-center justify-between px-10 py-4 bg-white border-b border-gray-100 sticky top-0 z-50">
-      <div className="flex items-center space-x-10">
+    <nav className="sticky top-0 z-50 px-3 md:px-6 pt-3">
+      <div className="ui-glass rounded-2xl px-4 md:px-6 py-3 flex items-center justify-between gap-4">
+      <div className="flex items-center gap-4 md:gap-10">
         {/* Logo */}
-        <Link to="/" className="flex items-center space-x-2">
-          <div className="bg-indigo-600 p-1.5 rounded-lg text-white">
+        <Link to="/" className="flex items-center space-x-2 group">
+          <div className="bg-teal-500 p-2 rounded-lg text-white shadow-md shadow-teal-500/30 group-hover:scale-105 transition-transform">
             <Rocket size={20} />
           </div>
-          <span className="text-xl font-bold text-gray-900 tracking-tighter">HireHive</span>
+          <span className="text-xl font-black text-slate-900 tracking-tight">HireHive</span>
         </Link>
 
         {/* Nav Links */}
-        <div className="hidden md:flex items-center space-x-8 text-gray-600 font-semibold text-sm">
+        <div className="hidden lg:flex items-center gap-7 text-slate-600 font-semibold text-sm">
 
           {userRole === 'CLIENT' ? (
-            <Link to="/client-dashboard" className="hover:text-indigo-600">Dashboard</Link>
+            <Link to="/client-dashboard" className="hover:text-teal-600 hover:-translate-y-0.5">Dashboard</Link>
           ) : (
-            <Link to="/freelancer-dashboard" className="hover:text-indigo-600">Dashboard</Link>
+            <Link to="/freelancer-dashboard" className="hover:text-teal-600 hover:-translate-y-0.5">Dashboard</Link>
           )}
 
           {userRole === 'CLIENT' ? (
-            <Link to="/freelancers" className="hover:text-indigo-600">Find Freelancers</Link>
+            <Link to="/freelancers" className="hover:text-teal-600 hover:-translate-y-0.5">Find Freelancers</Link>
           ) : (
-            <Link to="/browse" className="hover:text-indigo-600">Find Work</Link>
+            <Link to="/browse" className="hover:text-teal-600 hover:-translate-y-0.5">Find Work</Link>
           )}
 
-          <Link to="/about" className="hover:text-indigo-600 text-gray-500">About Us</Link>
-          <Link to="/contact" className="hover:text-indigo-600 text-gray-500">Contact Us</Link>
+          <Link to="/about" className="hover:text-teal-600 text-slate-500 hover:-translate-y-0.5">About Us</Link>
+          <Link to="/contact" className="hover:text-teal-600 text-slate-500 hover:-translate-y-0.5">Contact Us</Link>
         </div>
       </div>
 
       {/* Right Side Actions */}
-      <div className="flex items-center space-x-6">
+      <div className="flex items-center gap-3 md:gap-5">
         {userId && (
           <>
-            <Link to="/messages" className="flex items-center space-x-2 text-gray-600 hover:text-indigo-600 font-semibold text-sm">
-              <MessageSquare size={20} />
+            <Link to="/messages" className="hidden md:flex items-center space-x-2 text-slate-600 hover:text-teal-600 font-semibold text-sm px-3 py-1.5 rounded-lg hover:bg-teal-50">
+              <MessageSquare size={18} />
               <span>Messages</span>
             </Link>
-            <div className="flex items-center text-gray-600 hover:text-indigo-600">
+            <div className="flex items-center text-slate-600 hover:text-teal-600">
               <NotificationBell />
             </div>
           </>
         )}
         {!userId ? (
           <>
-            <Link to="/login" className="text-gray-600 hover:text-indigo-600 font-semibold text-sm">
+            <Link to="/login" className="text-slate-600 hover:text-teal-600 font-semibold text-sm px-3 py-1.5 rounded-lg hover:bg-teal-50">
               Login
             </Link>
-            <Link to="/signup" className="bg-indigo-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-indigo-700 transition text-sm">
+            <Link to="/signup" className="bg-gradient-to-r from-teal-500 to-cyan-500 text-white px-5 py-2.5 rounded-xl font-bold hover:shadow-lg hover:shadow-teal-500/30 text-sm">
               Join
             </Link>
           </>
         ) : (
           <button
             onClick={handleLogout}
-            className="flex items-center space-x-2 text-gray-600 hover:text-indigo-600 font-semibold text-sm"
+            className="hidden md:flex items-center space-x-2 text-slate-600 hover:text-teal-600 font-semibold text-sm px-3 py-1.5 rounded-lg hover:bg-teal-50"
           >
-            <LogOut size={20} />
+            <LogOut size={18} />
             <span>Logout</span>
           </button>
         )}
@@ -126,7 +127,7 @@ const Navbar = () => {
           <div className="relative">
             <button
               onClick={() => setShowProfileMenu(!showProfileMenu)}
-              className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden border-2 border-transparent hover:border-indigo-600 transition-all cursor-pointer"
+              className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden border-2 border-white/70 hover:border-teal-400 shadow-sm hover:shadow-md cursor-pointer"
             >
               {profilePictureUrl ? (
                 <img 
@@ -135,7 +136,7 @@ const Navbar = () => {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400">
+                <div className="w-full h-full bg-slate-100 flex items-center justify-center text-slate-400">
                   <User size={20} />
                 </div>
               )}
@@ -143,23 +144,34 @@ const Navbar = () => {
             
             {/* Profile Dropdown Menu */}
             {showProfileMenu && (
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-50">
-                <div className="px-4 py-2 border-b border-gray-100">
-                  <p className="font-bold text-gray-900 text-sm">{profileData?.me?.username || 'User'}</p>
-                  <p className="text-xs text-gray-500 capitalize">{userRole?.toLowerCase()}</p>
+              <div className="absolute right-0 mt-2 w-52 bg-white/90 backdrop-blur-lg rounded-xl shadow-xl border border-slate-200 py-2 z-50">
+                <div className="px-4 py-2 border-b border-slate-100">
+                  <p className="font-bold text-slate-900 text-sm">{profileData?.me?.username || 'User'}</p>
+                  <p className="text-xs text-slate-500 capitalize">{userRole?.toLowerCase()}</p>
                 </div>
                 <Link 
                   to="/create-profile" 
                   onClick={() => setShowProfileMenu(false)}
-                  className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:bg-indigo-50 hover:text-indigo-600 text-sm"
+                  className="flex items-center gap-2 px-4 py-2 text-slate-600 hover:bg-teal-50 hover:text-teal-700 text-sm"
                 >
                   <Settings size={16} />
                   Edit Profile
                 </Link>
+                <button
+                  onClick={() => {
+                    setShowProfileMenu(false);
+                    handleLogout();
+                  }}
+                  className="w-full text-left flex items-center gap-2 px-4 py-2 text-slate-600 hover:bg-rose-50 hover:text-rose-600 text-sm"
+                >
+                  <LogOut size={16} />
+                  Logout
+                </button>
               </div>
             )}
           </div>
         )}
+      </div>
       </div>
     </nav>
   );

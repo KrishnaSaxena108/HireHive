@@ -150,14 +150,14 @@ const SubmitReview = () => {
   const jobReviews = reviewsData?.reviewsByJob || [];
 
   return (
-    <div className="min-h-screen bg-slate-50 py-12 px-4">
+    <div className="min-h-screen py-12 px-4">
       <div className="max-w-3xl mx-auto">
-        <div className="bg-white rounded-3xl shadow-xl p-10 border border-slate-100 mb-8">
+        <div className="ui-glass rounded-3xl p-10 border border-slate-100 mb-8">
           <h2 className="text-3xl font-bold mb-2 text-slate-900">Submit a Review</h2>
           <p className="text-slate-600 mb-8">Rate the freelancer you hired after project completion.</p>
 
           {jobsLoading && (
-            <div className="bg-indigo-50 p-6 rounded-2xl border border-indigo-200 text-indigo-700 mb-6">
+            <div className="bg-teal-50 p-6 rounded-2xl border border-teal-200 text-teal-700 mb-6">
               <p>Loading completed projects...</p>
             </div>
           )}
@@ -185,8 +185,8 @@ const SubmitReview = () => {
                       onClick={() => handleTargetSelect(target)}
                       className={`p-4 rounded-xl border-2 text-left transition-all ${
                         selectedTarget?.jobId === target.jobId && selectedTarget?.revieweeId === target.revieweeId
-                          ? 'border-indigo-600 bg-indigo-50'
-                          : 'border-slate-300 bg-white hover:border-indigo-400'
+                          ? 'border-teal-600 bg-teal-50'
+                          : 'border-slate-300 bg-white hover:border-teal-400'
                       }`}
                     >
                       <p className="font-bold text-slate-900">{target.jobTitle}</p>
@@ -227,7 +227,7 @@ const SubmitReview = () => {
                     <label className="block text-sm font-bold text-slate-700 mb-2">Review (Optional)</label>
                     <textarea
                       placeholder="Share your experience working with this freelancer..."
-                      className="w-full p-4 border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-100 outline-none transition-all"
+                      className="w-full p-4 border border-slate-200 bg-white/90 rounded-xl focus:ring-4 focus:ring-teal-100 outline-none transition-all"
                       rows="5"
                       value={form.comment}
                       onChange={(e) => setForm({ ...form, comment: e.target.value })}
@@ -244,7 +244,7 @@ const SubmitReview = () => {
 
                   <button
                     disabled={loading || !!existingMyReview}
-                    className="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold hover:bg-indigo-700 transition disabled:opacity-50"
+                    className="w-full bg-gradient-to-r from-teal-500 to-cyan-500 text-white py-4 rounded-xl font-bold hover:shadow-lg hover:shadow-teal-500/25 transition disabled:opacity-50"
                   >
                     {loading ? 'Submitting…' : 'Submit Review'}
                   </button>
@@ -256,7 +256,7 @@ const SubmitReview = () => {
 
         {/* Existing Reviews For Selected Job */}
         {form.jobId && jobReviews.length > 0 && (
-          <div className="bg-white rounded-3xl shadow-xl p-10 border border-slate-100">
+          <div className="ui-glass rounded-3xl p-10 border border-slate-100">
             <h3 className="text-2xl font-bold text-slate-900 mb-6">Reviews For This Project</h3>
             <div className="space-y-4">
               {jobReviews.map((review) => (

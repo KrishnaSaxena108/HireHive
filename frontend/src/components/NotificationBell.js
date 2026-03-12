@@ -61,26 +61,26 @@ const NotificationBell = () => {
 
   return (
     <div className="relative">
-      <button onClick={() => setOpen(!open)} className="relative focus:outline-none">
+      <button onClick={() => setOpen(!open)} className="relative focus:outline-none p-1 rounded-lg hover:bg-teal-50 transition-colors">
         <Bell size={20} />
         {unreadCount > 0 && (
-          <span className="absolute -top-2 -right-2 text-xs bg-red-500 text-white rounded-full px-1">
+          <span className="absolute -top-2 -right-2 text-xs bg-rose-500 text-white rounded-full min-w-5 h-5 px-1 flex items-center justify-center font-bold">
             {unreadCount}
           </span>
         )}
       </button>
       {open && (
-        <div className="absolute right-0 mt-2 w-64 bg-white shadow-lg rounded-lg z-50">
+        <div className="absolute right-0 mt-2 w-72 bg-white/95 backdrop-blur-lg shadow-xl rounded-xl border border-slate-200 z-50 overflow-hidden">
           {loading && <p className="p-2 text-center text-sm">Loading...</p>}
           {error && <p className="p-2 text-sm text-red-500">Error</p>}
           {data && data.notifications.length === 0 && (
-            <p className="p-2 text-sm text-gray-500">No notifications</p>
+            <p className="p-4 text-sm text-slate-500">No notifications</p>
           )}
           {data && data.notifications.map(n => (
-            <div key={n.id} className="px-4 py-2 border-b last:border-0 flex justify-between items-center">
-              <span className={`${n.isRead ? 'text-gray-400' : 'text-gray-800'} text-sm`}>{n.message}</span>
+            <div key={n.id} className="px-4 py-3 border-b border-slate-100 last:border-0 flex justify-between items-center gap-3 hover:bg-slate-50 transition-colors">
+              <span className={`${n.isRead ? 'text-slate-400' : 'text-slate-800'} text-sm leading-snug`}>{n.message}</span>
               {!n.isRead && (
-                <button onClick={() => handleMark(n.id)} className="text-green-500">
+                <button onClick={() => handleMark(n.id)} className="text-teal-600 hover:text-teal-700">
                   <Check size={14} />
                 </button>
               )}

@@ -33,9 +33,9 @@ const JobFilter = () => {
   const jobs = data?.jobsByCategory || [];
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
+    <div className="max-w-7xl mx-auto p-4 md:p-6">
       {/* Category Filter */}
-      <div className="mb-8 flex items-center gap-4 flex-wrap">
+      <div className="mb-8 flex items-center gap-4 flex-wrap ui-glass rounded-2xl p-4">
         <div className="flex items-center gap-2 text-slate-700 font-bold">
           <Filter size={20} /> Category:
         </div>
@@ -45,7 +45,7 @@ const JobFilter = () => {
             onClick={() => setSelectedCategory(cat.value)}
             className={`px-4 py-2 rounded-full font-semibold transition-all ${
               selectedCategory === cat.value
-                ? 'bg-indigo-600 text-white shadow-lg'
+                ? 'bg-gradient-to-r from-teal-500 to-cyan-500 text-white shadow-lg shadow-teal-500/25'
                 : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
             }`}
           >
@@ -57,7 +57,7 @@ const JobFilter = () => {
       {/* Jobs Grid */}
       {loading && (
         <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600"></div>
         </div>
       )}
 
@@ -69,10 +69,10 @@ const JobFilter = () => {
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {jobs.map((job) => (
-          <div key={job.id} className="group bg-white p-8 rounded-3xl shadow-sm border border-slate-100 hover:shadow-xl hover:border-indigo-100 transition-all duration-300 flex flex-col justify-between">
+          <div key={job.id} className="group ui-glass ui-card-hover p-8 rounded-3xl border border-slate-100 flex flex-col justify-between">
             <div>
               <div className="flex justify-between items-start mb-4">
-                <div className="p-3 bg-indigo-50 rounded-2xl text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                <div className="p-3 bg-teal-50 rounded-2xl text-teal-600 group-hover:bg-teal-600 group-hover:text-white transition-colors">
                   <Briefcase size={24} />
                 </div>
                 <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">
@@ -95,7 +95,7 @@ const JobFilter = () => {
               </div>
             </div>
 
-            <button className="w-full bg-slate-900 text-white py-4 rounded-2xl font-black hover:bg-indigo-600 transition-all active:scale-95 shadow-lg shadow-slate-200">
+            <button className="w-full bg-gradient-to-r from-slate-900 to-slate-700 text-white py-4 rounded-2xl font-black hover:from-teal-600 hover:to-cyan-600 transition-all active:scale-95 shadow-lg shadow-slate-200">
               View Details
             </button>
           </div>

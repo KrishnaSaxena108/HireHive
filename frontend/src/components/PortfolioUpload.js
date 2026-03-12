@@ -74,16 +74,16 @@ const PortfolioUpload = ({ onUploadSuccess, currentFileUrl }) => {
 
   const handleDragOver = (e) => {
     e.preventDefault();
-    e.currentTarget.classList.add('border-indigo-500', 'bg-indigo-50');
+    e.currentTarget.classList.add('border-teal-500', 'bg-teal-50');
   };
 
   const handleDragLeave = (e) => {
-    e.currentTarget.classList.remove('border-indigo-500', 'bg-indigo-50');
+    e.currentTarget.classList.remove('border-teal-500', 'bg-teal-50');
   };
 
   const handleDrop = (e) => {
     e.preventDefault();
-    e.currentTarget.classList.remove('border-indigo-500', 'bg-indigo-50');
+    e.currentTarget.classList.remove('border-teal-500', 'bg-teal-50');
     const files = e.dataTransfer.files;
     if (files.length > 0) {
       handleFileSelect(files[0]);
@@ -92,13 +92,13 @@ const PortfolioUpload = ({ onUploadSuccess, currentFileUrl }) => {
 
   return (
     <div className="w-full max-w-md mx-auto">
-      <div className="bg-white rounded-2xl border-2 border-dashed border-slate-300 p-8 text-center">
+      <div className="ui-glass rounded-2xl border-2 border-dashed border-slate-300 p-8 text-center">
         {/* Current File Display */}
         {fileUrl && (
           <div className="mb-6 p-4 bg-slate-50 rounded-lg border border-slate-200">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <FileUp className="text-indigo-600" size={28} />
+                <FileUp className="text-teal-600" size={28} />
                 <div className="text-left">
                   <p className="font-semibold text-slate-900">{fileName || 'Portfolio'}</p>
                   <p className="text-sm text-slate-500">Uploaded successfully</p>
@@ -115,7 +115,7 @@ const PortfolioUpload = ({ onUploadSuccess, currentFileUrl }) => {
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
-            className="p-6 rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 transition-colors cursor-pointer hover:border-indigo-400"
+            className="p-6 rounded-xl border-2 border-dashed border-slate-300 bg-slate-50/80 transition-colors cursor-pointer hover:border-teal-400"
             onClick={() => fileInputRef.current?.click()}
           >
             <FileUp className="w-12 h-12 text-slate-400 mx-auto mb-3" />
@@ -127,7 +127,7 @@ const PortfolioUpload = ({ onUploadSuccess, currentFileUrl }) => {
         {/* Loading State */}
         {uploading && (
           <div className="py-8">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-3"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600 mx-auto mb-3"></div>
             <p className="text-slate-600 font-semibold">Uploading {fileName}...</p>
           </div>
         )}
@@ -163,7 +163,7 @@ const PortfolioUpload = ({ onUploadSuccess, currentFileUrl }) => {
             </a>
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="px-6 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-all"
+              className="px-6 py-2 bg-gradient-to-r from-teal-500 to-cyan-500 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-teal-500/25 transition-all"
             >
               Replace
             </button>

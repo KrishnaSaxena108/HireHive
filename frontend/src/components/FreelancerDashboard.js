@@ -123,7 +123,7 @@ const FreelancerDashboard = () => {
     }
   }, [userId, refetch]);
 
-  if (loading) return <div className="p-10 text-center animate-pulse text-blue-600 font-bold">Loading Freelancer Stats...</div>;
+  if (loading) return <div className="p-10 text-center animate-pulse text-teal-600 font-bold">Loading Freelancer Stats...</div>;
   if (error) return <div className="p-10 text-center text-red-500 bg-red-50 rounded-xl">Error: {error.message}</div>;
 
   const averageRating = data?.me?.averageRating || 0;
@@ -149,14 +149,14 @@ const FreelancerDashboard = () => {
   // ... (rest of the return statement stays exactly the same)
 
   return (
-    <div className="p-8 bg-slate-50 min-h-screen">
+    <div className="p-8 min-h-screen">
       <h2 className="text-3xl font-black text-slate-900 mb-8 tracking-tight">Freelancer Workspace</h2>
       <p className="mb-4 text-lg">Your rating: <span className="font-bold">{averageRating.toFixed(1)} / 5</span></p>
       
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
         {stats.map((stat, i) => (
-          <div key={i} className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex items-center gap-4 hover:shadow-md transition-shadow">
+          <div key={i} className="ui-glass p-6 rounded-3xl border border-slate-100 flex items-center gap-4 hover:shadow-md transition-shadow">
             <div className={`${stat.color} p-4 rounded-2xl text-white shadow-lg`}>{stat.icon}</div>
             <div>
               <p className="text-slate-500 text-sm font-medium">{stat.label}</p>
@@ -168,14 +168,14 @@ const FreelancerDashboard = () => {
 
       <div className="grid lg:grid-cols-2 gap-8">
         {/* Active Projects List (#13) */}
-        <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
+        <div className="ui-glass p-8 rounded-3xl border border-slate-100">
           <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
             <CheckCircle className="text-blue-500" size={20}/> Active Projects
           </h3>
           {activeProjects.length > 0 ? (
             <div className="space-y-4">
               {activeProjects.map((p) => (
-                <div key={p.id} className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                <div key={p.id} className="p-4 bg-white/80 rounded-2xl border border-slate-100">
                   <div className="flex justify-between items-start mb-3">
                     <div>
                       <h4 className="font-bold text-slate-900">{p.job.title}</h4>
@@ -193,7 +193,7 @@ const FreelancerDashboard = () => {
                   {/* Show upload button for IN_PROGRESS jobs */}
                   {p.job.status === 'IN_PROGRESS' && (
                     <div className="mt-3 pt-3 border-t border-slate-200">
-                      <label className="flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition cursor-pointer disabled:opacity-50">
+                      <label className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-teal-500 to-cyan-500 text-white rounded-xl font-bold hover:shadow-lg hover:shadow-teal-500/25 transition cursor-pointer disabled:opacity-50">
                         {uploadingJobId === p.job.id ? (
                           <>
                             <Loader size={18} className="animate-spin" />
@@ -250,7 +250,7 @@ const FreelancerDashboard = () => {
         </div>
         
         {/* Pending Bids Section */}
-        <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
+        <div className="ui-glass p-8 rounded-3xl border border-slate-100">
           <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
             <Clock className="text-orange-500" size={20}/> My Pending Bids
           </h3>

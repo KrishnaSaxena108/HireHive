@@ -84,9 +84,9 @@ const AdvancedSearch = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
+    <div className="max-w-7xl mx-auto p-4 md:p-6">
       {/* Search Bar */}
-      <div className="mb-8">
+      <div className="mb-8 ui-glass rounded-3xl p-4 md:p-6">
         <div className="flex gap-4 mb-4">
           <div className="flex-1 relative">
             <Search className="absolute left-4 top-3.5 text-slate-400" size={20} />
@@ -95,12 +95,12 @@ const AdvancedSearch = () => {
               placeholder="Search jobs by title or description..."
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+              className="w-full pl-12 pr-4 py-3 border border-slate-300 bg-white/90 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none"
             />
           </div>
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-all"
+            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-teal-500 to-cyan-500 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-teal-500/30 transition-all"
           >
             <Filter size={20} /> Filters
             {activeFilters > 0 && (
@@ -119,14 +119,14 @@ const AdvancedSearch = () => {
 
         {/* Filter Panel */}
         {showFilters && (
-          <div className="bg-white border border-slate-200 rounded-lg p-6 mb-6 grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="bg-white/80 border border-slate-200 rounded-lg p-6 mb-2 grid md:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Category Filter */}
             <div>
               <label className="block text-sm font-bold text-slate-700 mb-2">Category</label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+                className="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none"
               >
                 <option value="">All Categories</option>
                 {CATEGORIES.map(cat => (
@@ -143,7 +143,7 @@ const AdvancedSearch = () => {
                 placeholder="500"
                 value={minBudget}
                 onChange={(e) => setMinBudget(e.target.value)}
-                className="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+                className="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none"
               />
             </div>
 
@@ -155,7 +155,7 @@ const AdvancedSearch = () => {
                 placeholder="10000"
                 value={maxBudget}
                 onChange={(e) => setMaxBudget(e.target.value)}
-                className="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+                className="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none"
               />
             </div>
 
@@ -165,7 +165,7 @@ const AdvancedSearch = () => {
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
-                className="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+                className="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none"
               >
                 <option value="">All Status</option>
                 {STATUS_OPTIONS.map(opt => (
@@ -180,7 +180,7 @@ const AdvancedSearch = () => {
       {/* Results Count & Sort */}
       <div className="mb-4 flex justify-between items-center">
         <div className="text-slate-600 font-semibold">
-          Found <span className="text-indigo-600">{sortedJobs.length}</span> job{sortedJobs.length !== 1 ? 's' : ''}
+          Found <span className="text-teal-600">{sortedJobs.length}</span> job{sortedJobs.length !== 1 ? 's' : ''}
         </div>
         <div className="flex gap-4 items-center">
           <label className="text-sm font-semibold text-slate-700">Sort by:</label>
@@ -190,7 +190,7 @@ const AdvancedSearch = () => {
               setSortBy(e.target.value);
               setCurrentPage(1);
             }}
-            className="p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-sm"
+            className="p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none text-sm bg-white/90"
           >
             <option value="latest">Latest</option>
             <option value="budget-high">Budget: High to Low</option>
@@ -202,7 +202,7 @@ const AdvancedSearch = () => {
       {/* Loading */}
       {loading && (
         <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600"></div>
         </div>
       )}
 
@@ -217,11 +217,11 @@ const AdvancedSearch = () => {
       {/* Jobs Grid */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {paginatedJobs.map((job) => (
-          <div key={job.id} className="group bg-white p-8 rounded-3xl shadow-sm border border-slate-100 hover:shadow-xl hover:border-indigo-100 transition-all duration-300 flex flex-col justify-between">
+          <div key={job.id} className="group ui-glass ui-card-hover p-8 rounded-3xl flex flex-col justify-between">
             <div>
               {/* Header */}
               <div className="flex justify-between items-start mb-4">
-                <div className="p-3 bg-indigo-50 rounded-2xl text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                <div className="p-3 bg-teal-50 rounded-2xl text-teal-600 group-hover:bg-teal-500 group-hover:text-white transition-colors">
                   <Briefcase size={24} />
                 </div>
                 <div className="text-right">
@@ -249,7 +249,7 @@ const AdvancedSearch = () => {
             {/* Action Button */}
             <Link 
               to={`/job/${job.id}`}
-              className="w-full bg-slate-900 text-white py-4 rounded-2xl font-black hover:bg-indigo-600 transition-all active:scale-95 shadow-lg shadow-slate-200 text-center block"
+              className="w-full bg-gradient-to-r from-slate-900 to-slate-700 text-white py-4 rounded-2xl font-black hover:from-teal-600 hover:to-cyan-600 transition-all active:scale-95 shadow-lg shadow-slate-200 text-center block"
             >
               View Details
             </Link>
@@ -275,7 +275,7 @@ const AdvancedSearch = () => {
                 onClick={() => setCurrentPage(page)}
                 className={`px-4 py-2 rounded-lg font-semibold transition-all ${
                   page === currentPage
-                    ? 'bg-indigo-600 text-white'
+                    ? 'bg-teal-600 text-white'
                     : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
                 }`}
               >

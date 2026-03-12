@@ -70,11 +70,11 @@ const FreelancerSearch = () => {
   );
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
+    <div className="max-w-7xl mx-auto p-4 md:p-6">
       <h1 className="text-3xl font-black text-slate-900 mb-8">Find Freelancers</h1>
 
       {/* Search Filters */}
-      <div className="bg-white p-6 rounded-3xl shadow-xl mb-8">
+      <div className="ui-glass p-6 rounded-3xl mb-8">
         <div className="grid md:grid-cols-4 gap-4">
           <div className="relative">
             <Search className="absolute left-3 top-3.5 text-slate-400" size={20} />
@@ -86,7 +86,7 @@ const FreelancerSearch = () => {
                 setQuery(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+              className="w-full pl-10 pr-4 py-3 border border-slate-300 bg-white/90 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none"
             />
           </div>
           <select
@@ -95,7 +95,7 @@ const FreelancerSearch = () => {
               setCategory(e.target.value);
               setCurrentPage(1);
             }}
-            className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+            className="w-full p-3 border border-slate-300 bg-white/90 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none"
           >
             <option value="">All Categories</option>
             <option value="WEB_DEV">Web Development</option>
@@ -117,7 +117,7 @@ const FreelancerSearch = () => {
                 setMinRating(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+              className="w-full p-3 border border-slate-300 bg-white/90 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none"
             />
           </div>
           <div>
@@ -130,7 +130,7 @@ const FreelancerSearch = () => {
                 setMaxRate(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+              className="w-full p-3 border border-slate-300 bg-white/90 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none"
             />
           </div>
         </div>
@@ -138,7 +138,7 @@ const FreelancerSearch = () => {
 
       {/* Results Count */}
       <div className="mb-4 text-slate-600 font-semibold">
-        Found <span className="text-indigo-600">{filtered.length}</span> freelancer{filtered.length !== 1 ? 's' : ''}
+        Found <span className="text-teal-600">{filtered.length}</span> freelancer{filtered.length !== 1 ? 's' : ''}
       </div>
 
       {/* Loading */}
@@ -155,10 +155,10 @@ const FreelancerSearch = () => {
       {/* Freelancers Grid */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {paginatedFreelancers.map((freelancer) => (
-          <div key={freelancer.id} className="bg-white p-6 rounded-3xl shadow-xl border border-slate-100 hover:shadow-lg transition-shadow">
+          <div key={freelancer.id} className="ui-glass ui-card-hover p-6 rounded-3xl border border-slate-100">
             <div className="flex items-center gap-4 mb-4">
-              <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center">
-                <User size={32} className="text-indigo-600" />
+              <div className="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center">
+                <User size={32} className="text-teal-600" />
               </div>
               <div>
                 <h3 className="text-lg font-bold text-slate-900">{freelancer.username}</h3>
@@ -172,7 +172,7 @@ const FreelancerSearch = () => {
             <div className="mb-4">
               <p className="text-slate-700 mb-2 text-sm">{freelancer.profile?.bio || 'No bio available'}</p>
               {freelancer.profile?.category && (
-                <span className="inline-block bg-indigo-100 text-indigo-700 text-xs px-2 py-1 rounded-full mb-2">
+                <span className="inline-block bg-teal-100 text-teal-700 text-xs px-2 py-1 rounded-full mb-2">
                   {getCategoryLabel(freelancer.profile.category)}
                 </span>
               )}
@@ -188,7 +188,7 @@ const FreelancerSearch = () => {
 
             <Link
               to={`/messages?user=${freelancer.id}`}
-              className="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold hover:bg-indigo-700 transition text-center block text-sm"
+              className="w-full bg-gradient-to-r from-teal-500 to-cyan-500 text-white py-3 rounded-xl font-bold hover:shadow-lg hover:shadow-teal-500/25 transition text-center block text-sm"
             >
               Contact Freelancer
             </Link>
@@ -214,7 +214,7 @@ const FreelancerSearch = () => {
                 onClick={() => setCurrentPage(page)}
                 className={`px-4 py-2 rounded-lg font-semibold transition-all ${
                   page === currentPage
-                    ? 'bg-indigo-600 text-white'
+                    ? 'bg-teal-600 text-white'
                     : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
                 }`}
               >

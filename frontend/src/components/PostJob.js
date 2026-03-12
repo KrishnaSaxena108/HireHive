@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { gql } from '@apollo/client';
 import { useMutation } from '@apollo/client/react/index.js'; // The fixed import path
 import { useNavigate } from 'react-router-dom';
-import { Rocket, DollarSign, AlignLeft, Type } from 'lucide-react';
+import { Rocket, DollarSign, AlignLeft, Type, ArrowRight } from 'lucide-react';
 
 const CREATE_JOB = gql`
   mutation CreateJob($title: String!, $description: String!, $budget: Float!, $category: String) {
@@ -60,11 +60,12 @@ const PostJob = () => {
   };
 
   return (
-    <div className="max-w-2xl mx-auto py-12 px-6">
-      <div className="bg-white rounded-3xl shadow-xl p-10 border border-slate-100">
-        <h2 className="text-3xl font-black text-slate-900 mb-8 flex items-center gap-3">
-          <Rocket className="text-indigo-600" /> Post a New Project
+    <div className="max-w-2xl mx-auto py-12 px-4 md:px-6">
+      <div className="ui-glass rounded-3xl p-10 border border-slate-100">
+        <h2 className="text-3xl font-black text-slate-900 mb-2 flex items-center gap-3">
+          <Rocket className="text-teal-600" /> Post a New Project
         </h2>
+        <p className="text-slate-600 mb-8">Craft a clear brief and attract high-quality proposals faster.</p>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
@@ -77,7 +78,7 @@ const PostJob = () => {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g. Build a Food Delivery App" 
-              className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition"
+              className="w-full p-4 bg-white/90 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-teal-500 outline-none transition"
             />
           </div>
 
@@ -91,7 +92,7 @@ const PostJob = () => {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Describe the project requirements..." 
-              className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition"
+              className="w-full p-4 bg-white/90 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-teal-500 outline-none transition"
             ></textarea>
           </div>
 
@@ -102,7 +103,7 @@ const PostJob = () => {
             <select 
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition"
+              className="w-full p-4 bg-white/90 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-teal-500 outline-none transition"
             >
               {CATEGORIES.map(cat => (
                 <option key={cat.value} value={cat.value}>{cat.label}</option>
@@ -120,7 +121,7 @@ const PostJob = () => {
               value={budget}
               onChange={(e) => setBudget(e.target.value)}
               placeholder="500" 
-              className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition"
+              className="w-full p-4 bg-white/90 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-teal-500 outline-none transition"
             />
           </div>
 
@@ -129,9 +130,9 @@ const PostJob = () => {
           <button 
             type="submit"
             disabled={loading}
-            className="w-full bg-indigo-600 text-white py-4 rounded-2xl font-black text-lg shadow-lg shadow-indigo-100 hover:bg-indigo-700 hover:-translate-y-1 transition-all flex items-center justify-center gap-2"
+            className="w-full bg-gradient-to-r from-teal-500 to-cyan-500 text-white py-4 rounded-2xl font-black text-lg shadow-lg shadow-teal-100 hover:shadow-xl hover:shadow-teal-500/25 hover:-translate-y-1 transition-all flex items-center justify-center gap-2"
           >
-            {loading ? "Launching..." : "Launch Project"} <Rocket size={20}/>
+            {loading ? "Launching..." : <><span>Launch Project</span><ArrowRight size={20}/></>}
           </button>
         </form>
       </div>

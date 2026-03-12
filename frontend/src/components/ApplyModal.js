@@ -37,7 +37,7 @@ const ApplyModal = ({ job, isOpen, onClose }) => {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-end bg-slate-900/60 backdrop-blur-sm">
-      <div className="bg-white w-full max-w-lg h-full p-8 shadow-2xl flex flex-col animate-slide-in">
+      <div className="bg-white/90 backdrop-blur-xl border-l border-slate-200 w-full max-w-lg h-full p-8 shadow-2xl flex flex-col animate-slide-in">
         <div className="flex justify-between items-center mb-8">
           <h2 className="text-2xl font-black text-slate-900">Submit Proposal</h2>
           <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full transition">
@@ -45,8 +45,8 @@ const ApplyModal = ({ job, isOpen, onClose }) => {
           </button>
         </div>
 
-        <div className="bg-indigo-50 p-4 rounded-2xl mb-8 border border-indigo-100">
-          <p className="text-xs font-bold text-indigo-600 uppercase tracking-widest mb-1">Applying for:</p>
+        <div className="bg-teal-50 p-4 rounded-2xl mb-8 border border-teal-100">
+          <p className="text-xs font-bold text-teal-600 uppercase tracking-widest mb-1">Applying for:</p>
           <h3 className="text-lg font-bold text-slate-800">{job.title}</h3>
           <p className="text-sm text-slate-500">Client Budget: ${job.budget}</p>
         </div>
@@ -58,7 +58,7 @@ const ApplyModal = ({ job, isOpen, onClose }) => {
               <DollarSign className="absolute left-3 top-3.5 text-slate-400" size={20} />
               <input 
                 required type="number" placeholder="Enter your bid..."
-                className="w-full pl-10 pr-4 py-3.5 rounded-xl border border-slate-200 focus:ring-4 focus:ring-indigo-100 focus:border-indigo-600 outline-none transition-all"
+                className="w-full pl-10 pr-4 py-3.5 rounded-xl border border-slate-200 bg-white/90 focus:ring-4 focus:ring-teal-100 focus:border-teal-600 outline-none transition-all"
                 onChange={(e) => setFormData({...formData, bidAmount: e.target.value})}
               />
             </div>
@@ -68,7 +68,7 @@ const ApplyModal = ({ job, isOpen, onClose }) => {
             <label className="block text-sm font-bold text-slate-700 mb-2">Cover Letter</label>
             <textarea 
               required placeholder="Explain why you are the best fit for this project..."
-              className="w-full p-4 h-64 rounded-xl border border-slate-200 focus:ring-4 focus:ring-indigo-100 focus:border-indigo-600 outline-none transition-all"
+              className="w-full p-4 h-64 rounded-xl border border-slate-200 bg-white/90 focus:ring-4 focus:ring-teal-100 focus:border-teal-600 outline-none transition-all"
               onChange={(e) => setFormData({...formData, coverLetter: e.target.value})}
             />
           </div>
@@ -81,7 +81,7 @@ const ApplyModal = ({ job, isOpen, onClose }) => {
 
           <button 
             disabled={loading}
-            className="w-full bg-indigo-600 text-white py-4 rounded-xl font-black text-lg shadow-xl shadow-indigo-200 hover:bg-indigo-700 transition-all flex items-center justify-center gap-2"
+            className="w-full bg-gradient-to-r from-teal-500 to-cyan-500 text-white py-4 rounded-xl font-black text-lg shadow-xl shadow-teal-200 hover:shadow-2xl hover:shadow-teal-500/25 transition-all flex items-center justify-center gap-2"
           >
             {loading ? "Sending..." : <><Send size={18} /> Send Proposal</>}
           </button>
