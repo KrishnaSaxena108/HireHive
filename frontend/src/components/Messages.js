@@ -13,10 +13,40 @@ const GET_USER_MESSAGES = gql`
       jobId
       createdAt
       sender {
+        id
         username
       }
       receiver {
+        id
         username
+      }
+    }
+  }
+`;
+
+const GET_FREELANCER_CONTACTS = gql`
+  query GetFreelancerContacts {
+    myProposals {
+      status
+      job {
+        client {
+          id
+          username
+        }
+      }
+    }
+  }
+`;
+
+const GET_CLIENT_CONTACTS = gql`
+  query GetClientContacts {
+    jobs {
+      proposals {
+        status
+        freelancer {
+          id
+          username
+        }
       }
     }
   }
@@ -35,10 +65,21 @@ const Messages = () => {
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [newMessage, setNewMessage] = useState('');
   const userId = localStorage.getItem('userId');
+  const userRole = localStorage.getItem('userRole');
 
-  // if there is no logged-in user, do not run the query and prompt for login
-  const { loading, error, data, refetch } = useQuery(GET_USER_MESSAGES, {
+  // Fetch messages
+  const { loading: msgLoading, error: msgError, data: msgData, refetch } = useQuery(GET_USER_MESSAGES, {
     skip: !userId
+  });
+
+  // Fetch contacts for freelancer
+  const { loading: freeLoading, data: freeData } = useQuery(GET_FREELANCER_CONTACTS, {
+    skip: !userId || userRole !== 'FREELANCER'
+  });
+
+  // Fetch contacts for client
+  const { loading: clientLoading, data: clientData } = useQuery(GET_CLIENT_CONTACTS, {
+    skip: !userId || userRole !== 'CLIENT'
   });
 
   const [sendMessage] = useMutation(SEND_MESSAGE, {
@@ -55,26 +96,68 @@ const Messages = () => {
       </div>
     );
   }
-  if (loading) return <div className="p-10 text-center">Loading messages...</div>;
-  if (error) return <div className="p-10 text-center text-red-500">Error: {error.message}</div>;
+  if (msgLoading || freeLoading || clientLoading) return <div className="p-10 text-center">Loading messages...</div>;
+  if (msgError) return <div className="p-10 text-center text-red-500">Error: {msgError.message}</div>;
 
-  const messages = data?.userMessages || [];
+  const messages = msgData?.userMessages || [];
 
-  // Group messages by conversation (other user)
-  const conversations = {};
+  // 1. Group existing messages by conversation (other user)
+  const conversationsMap = {};
   messages.forEach(msg => {
     const otherUserId = msg.senderId === userId ? msg.receiverId : msg.senderId;
     const otherUser = msg.senderId === userId ? msg.receiver : msg.sender;
-    if (!conversations[otherUserId]) {
-      conversations[otherUserId] = {
+    
+    // Ensure both sender and receiver have IDs if available, but fallback gracefully
+    if (!otherUserId || !otherUser || !otherUser.id) return;
+    
+    if (!conversationsMap[otherUserId]) {
+      conversationsMap[otherUserId] = {
         user: otherUser,
         messages: []
       };
     }
-    conversations[otherUserId].messages.push(msg);
+    // Add msg avoiding duplicates if any
+    const exists = conversationsMap[otherUserId].messages.find(m => m.id === msg.id);
+    if (!exists) {
+      conversationsMap[otherUserId].messages.push(msg);
+    }
   });
 
-  const conversationList = Object.values(conversations);
+  // 2. Add Active Contacts (Freelancer side)
+  if (userRole === 'FREELANCER' && freeData?.myProposals) {
+    freeData.myProposals.forEach(proposal => {
+      if (proposal.status === 'ACCEPTED' && proposal.job?.client) {
+        const client = proposal.job.client;
+        if (!conversationsMap[client.id]) {
+          conversationsMap[client.id] = {
+            user: client,
+            messages: []
+          };
+        }
+      }
+    });
+  }
+
+  // 3. Add Active Contacts (Client side)
+  if (userRole === 'CLIENT' && clientData?.jobs) {
+    clientData.jobs.forEach(job => {
+      if (job.proposals) {
+        job.proposals.forEach(proposal => {
+          if (proposal.status === 'ACCEPTED' && proposal.freelancer) {
+            const freelancer = proposal.freelancer;
+            if (!conversationsMap[freelancer.id]) {
+              conversationsMap[freelancer.id] = {
+                user: freelancer,
+                messages: []
+              };
+            }
+          }
+        });
+      }
+    });
+  }
+
+  const conversationList = Object.values(conversationsMap);
 
   const handleSendMessage = () => {
     if (!newMessage.trim() || !selectedConversation) return;

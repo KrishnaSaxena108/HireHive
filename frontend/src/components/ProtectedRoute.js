@@ -3,7 +3,7 @@ import { Navigate } from 'react-router-dom';
 
 const ProtectedRoute = ({ element, requiredRole = null }) => {
   const token = localStorage.getItem('token');
-  const userRole = localStorage.getItem('role');
+  const userRole = localStorage.getItem('userRole');
 
   // Not authenticated - redirect to login
   if (!token) {

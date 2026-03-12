@@ -107,6 +107,24 @@ const resolvers = {
       });
     },
 
+    searchFreelancers: async (_, { query, category }) => {
+      let users = await User.findAll({
+        where: { role: 'FREELANCER' },
+        include: ['profile']
+      });
+
+      if (query) {
+        const q = query.toLowerCase();
+        users = users.filter(u => 
+          u.username.toLowerCase().includes(q) || 
+          (u.profile?.skills && u.profile.skills.toLowerCase().includes(q)) ||
+          (u.profile?.bio && u.profile.bio.toLowerCase().includes(q))
+        );
+      }
+      
+      return users;
+    },
+
     // --- Admin Queries ---
     adminUsers: async (_, __, { user }) => {
       if (!user || user.role !== 'ADMIN') throw new Error("Admin access required");
