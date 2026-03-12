@@ -1,7 +1,7 @@
 const nodemailer = require('nodemailer');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { User, Job, Proposal, Message, Notification, Review, sequelize } = require('../../models');
+const { User, Job, Proposal, Message, Notification, Review, Profile, sequelize } = require('../../models');
 const { Op } = require('sequelize');
 
 const generateToken = (user) => {
@@ -120,6 +120,10 @@ const resolvers = {
           (u.profile?.skills && u.profile.skills.toLowerCase().includes(q)) ||
           (u.profile?.bio && u.profile.bio.toLowerCase().includes(q))
         );
+      }
+
+      if (category) {
+        users = users.filter(u => u.profile?.category === category);
       }
       
       return users;
@@ -264,28 +268,66 @@ const resolvers = {
       return result;
     },
 
+    // --- Complete Job (Freelancer submits deliverable) ---
+    completeJob: async (_, { jobId, deliverableUrl, deliverableFileName }, { io, user }) => {
+      if (!user || user.role !== 'FREELANCER') throw new Error("Only freelancers can complete jobs");
+
+      // Verify the freelancer is assigned to this job
+      const proposal = await Proposal.findOne({
+        where: {
+          freelancerId: user.id,
+          jobId: jobId,
+          status: 'ACCEPTED'
+        }
+      });
+
+      if (!proposal) throw new Error("You are not assigned to this job");
+
+      const job = await Job.findByPk(jobId, { include: ['client'] });
+      if (!job) throw new Error("Job not found");
+      if (job.status !== 'IN_PROGRESS') throw new Error("Job is not in progress");
+
+      // Update job with deliverable and mark as completed
+      await job.update({
+        status: 'COMPLETED',
+        deliverableUrl,
+        deliverableFileName
+      });
+
+      // Notify the client
+      io.to(`user_${job.clientId}`).emit('job_completed', { jobId: job.id });
+      await Notification.create({
+        userId: job.clientId,
+        message: `Project "${job.title}" has been completed! The deliverable is ready for download.`,
+        isRead: false
+      });
+
+      return job;
+    },
+
     // --- CHAT & PROFILES (#20 & #10) ---
     sendMessage: async (_, { receiverId, content, jobId }, { io, user }) => {
       if (!user) throw new Error("Unauthorized");
       const message = await Message.create({ content, senderId: user.id, receiverId, jobId });
-      io.to(`user_${receiverId}`).emit('receive_message', message);
+      const fullMessage = await Message.findByPk(message.id, { include: ['sender', 'receiver'] });
+      io.to(`user_${receiverId}`).emit('receive_message', fullMessage);
       // persist notification for receiver
       await Notification.create({
         userId: receiverId,
         message: `New message from ${user.username}.`,
         isRead: false
       });
-      return message;
+      return fullMessage;
     },
 
-    updateProfile: async (_, { bio, skills, hourlyRate }, { user }) => {
+    updateProfile: async (_, { bio, skills, hourlyRate, category }, { user }) => {
       if (!user) throw new Error("Unauthorized");
       const [profile, created] = await Profile.findOrCreate({
         where: { userId: user.id },
-        defaults: { bio, skills, hourlyRate }
+        defaults: { bio, skills, hourlyRate, category }
       });
       if (!created) {
-        await profile.update({ bio, skills, hourlyRate });
+        await profile.update({ bio, skills, hourlyRate, category });
       }
       return profile;
     },
@@ -374,13 +416,49 @@ const resolvers = {
   },
 };
 
-// Field-level resolver for computed values
+// Field-level resolvers for nested relationships
 resolvers.User = {
+  profile: async (parent) => {
+    if (parent.profile) return parent.profile;
+    return await Profile.findOne({ where: { userId: parent.id } });
+  },
   averageRating: async (parent) => {
     const reviews = await Review.findAll({ where: { revieweeId: parent.id } });
     if (reviews.length === 0) return 0;
     const sum = reviews.reduce((acc, r) => acc + r.rating, 0);
     return sum / reviews.length;
+  }
+};
+
+resolvers.Proposal = {
+  freelancer: async (parent) => {
+    if (parent.freelancer) return parent.freelancer;
+    if (!parent.freelancerId) return null;
+    return await User.findByPk(parent.freelancerId, { include: ['profile'] });
+  },
+  job: async (parent) => {
+    if (parent.job) return parent.job;
+    if (!parent.jobId) return null;
+    return await Job.findByPk(parent.jobId, { include: ['client'] });
+  }
+};
+
+resolvers.Message = {
+  createdAt: (parent) => {
+    if (!parent.createdAt) return null;
+    return new Date(parent.createdAt).toISOString();
+  }
+};
+
+resolvers.Job = {
+  client: async (parent) => {
+    if (parent.client) return parent.client;
+    if (!parent.clientId) return null;
+    return await User.findByPk(parent.clientId);
+  },
+  proposals: async (parent) => {
+    if (parent.proposals) return parent.proposals;
+    return await Proposal.findAll({ where: { jobId: parent.id } });
   }
 };
 

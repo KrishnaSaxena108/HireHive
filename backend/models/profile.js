@@ -25,6 +25,10 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: null,
       comment: 'URL to portfolio file or document'
     },
+    category: {
+      type: DataTypes.ENUM('WEB_DEV', 'MOBILE_DEV', 'DESIGN', 'WRITING', 'MARKETING', 'OTHER'),
+      defaultValue: 'OTHER'
+    },
     userId: DataTypes.INTEGER
   }, {
     sequelize,

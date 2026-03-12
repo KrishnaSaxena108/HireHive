@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { gql } from '@apollo/client';
 import { useQuery, useMutation } from '@apollo/client/react/index.js';
+import { useSearchParams } from 'react-router-dom';
 import { MessageSquare, Send, User } from 'lucide-react';
 
 const GET_USER_MESSAGES = gql`
@@ -57,6 +58,17 @@ const SEND_MESSAGE = gql`
     sendMessage(receiverId: $receiverId, content: $content, jobId: $jobId) {
       id
       content
+      senderId
+      receiverId
+      createdAt
+      sender {
+        id
+        username
+      }
+      receiver {
+        id
+        username
+      }
     }
   }
 `;
@@ -64,6 +76,10 @@ const SEND_MESSAGE = gql`
 const Messages = () => {
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [newMessage, setNewMessage] = useState('');
+  const [searchParams] = useSearchParams();
+  const targetUserId = searchParams.get('user');
+  const targetUsername = searchParams.get('username');
+  const autoSelectedRef = useRef(false);
   const userId = localStorage.getItem('userId');
   const userRole = localStorage.getItem('userRole');
 
@@ -89,6 +105,84 @@ const Messages = () => {
     }
   });
 
+  // Build conversation list (must be before any early returns so hooks below work)
+  const conversationList = useMemo(() => {
+    const messages = msgData?.userMessages || [];
+    const conversationsMap = {};
+
+    messages.forEach(msg => {
+      const otherUserId = msg.senderId === userId ? msg.receiverId : msg.senderId;
+      const otherUser = msg.senderId === userId ? msg.receiver : msg.sender;
+      if (!otherUserId || !otherUser || !otherUser.id) return;
+      if (!conversationsMap[otherUserId]) {
+        conversationsMap[otherUserId] = { user: otherUser, messages: [] };
+      }
+      const exists = conversationsMap[otherUserId].messages.find(m => m.id === msg.id);
+      if (!exists) conversationsMap[otherUserId].messages.push(msg);
+    });
+
+    if (userRole === 'FREELANCER' && freeData?.myProposals) {
+      freeData.myProposals.forEach(proposal => {
+        if (proposal.status === 'ACCEPTED' && proposal.job?.client) {
+          const client = proposal.job.client;
+          if (!conversationsMap[client.id]) {
+            conversationsMap[client.id] = { user: client, messages: [] };
+          }
+        }
+      });
+    }
+
+    if (userRole === 'CLIENT' && clientData?.jobs) {
+      clientData.jobs.forEach(job => {
+        if (job.proposals) {
+          job.proposals.forEach(proposal => {
+            if (proposal.status === 'ACCEPTED' && proposal.freelancer) {
+              const freelancer = proposal.freelancer;
+              if (!conversationsMap[freelancer.id]) {
+                conversationsMap[freelancer.id] = { user: freelancer, messages: [] };
+              }
+            }
+          });
+        }
+      });
+    }
+
+    if (targetUserId && !conversationsMap[targetUserId]) {
+      conversationsMap[targetUserId] = {
+        user: { id: targetUserId, username: targetUsername || 'User' },
+        messages: []
+      };
+    }
+
+    return Object.values(conversationsMap);
+  }, [msgData, freeData, clientData, userId, userRole, targetUserId, targetUsername]);
+
+  // Auto-select conversation when navigated with URL params
+  useEffect(() => {
+    if (targetUserId && !autoSelectedRef.current && !msgLoading) {
+      autoSelectedRef.current = true;
+      const existing = conversationList.find(c => c.user.id === targetUserId);
+      if (existing) {
+        setSelectedConversation(existing);
+      } else {
+        setSelectedConversation({
+          user: { id: targetUserId, username: targetUsername || 'User' },
+          messages: []
+        });
+      }
+    }
+  }, [targetUserId, targetUsername, conversationList, msgLoading]);
+
+  // Keep selectedConversation in sync with refreshed data
+  useEffect(() => {
+    if (selectedConversation) {
+      const updated = conversationList.find(c => c.user.id === selectedConversation.user.id);
+      if (updated && updated.messages.length !== selectedConversation.messages.length) {
+        setSelectedConversation(updated);
+      }
+    }
+  }, [conversationList, selectedConversation]);
+
   if (!userId) {
     return (
       <div className="p-10 text-center">
@@ -98,66 +192,6 @@ const Messages = () => {
   }
   if (msgLoading || freeLoading || clientLoading) return <div className="p-10 text-center">Loading messages...</div>;
   if (msgError) return <div className="p-10 text-center text-red-500">Error: {msgError.message}</div>;
-
-  const messages = msgData?.userMessages || [];
-
-  // 1. Group existing messages by conversation (other user)
-  const conversationsMap = {};
-  messages.forEach(msg => {
-    const otherUserId = msg.senderId === userId ? msg.receiverId : msg.senderId;
-    const otherUser = msg.senderId === userId ? msg.receiver : msg.sender;
-    
-    // Ensure both sender and receiver have IDs if available, but fallback gracefully
-    if (!otherUserId || !otherUser || !otherUser.id) return;
-    
-    if (!conversationsMap[otherUserId]) {
-      conversationsMap[otherUserId] = {
-        user: otherUser,
-        messages: []
-      };
-    }
-    // Add msg avoiding duplicates if any
-    const exists = conversationsMap[otherUserId].messages.find(m => m.id === msg.id);
-    if (!exists) {
-      conversationsMap[otherUserId].messages.push(msg);
-    }
-  });
-
-  // 2. Add Active Contacts (Freelancer side)
-  if (userRole === 'FREELANCER' && freeData?.myProposals) {
-    freeData.myProposals.forEach(proposal => {
-      if (proposal.status === 'ACCEPTED' && proposal.job?.client) {
-        const client = proposal.job.client;
-        if (!conversationsMap[client.id]) {
-          conversationsMap[client.id] = {
-            user: client,
-            messages: []
-          };
-        }
-      }
-    });
-  }
-
-  // 3. Add Active Contacts (Client side)
-  if (userRole === 'CLIENT' && clientData?.jobs) {
-    clientData.jobs.forEach(job => {
-      if (job.proposals) {
-        job.proposals.forEach(proposal => {
-          if (proposal.status === 'ACCEPTED' && proposal.freelancer) {
-            const freelancer = proposal.freelancer;
-            if (!conversationsMap[freelancer.id]) {
-              conversationsMap[freelancer.id] = {
-                user: freelancer,
-                messages: []
-              };
-            }
-          }
-        });
-      }
-    });
-  }
-
-  const conversationList = Object.values(conversationsMap);
 
   const handleSendMessage = () => {
     if (!newMessage.trim() || !selectedConversation) return;

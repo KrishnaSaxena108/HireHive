@@ -44,6 +44,16 @@ module.exports = (sequelize, DataTypes) => {
     clientId: {
       type: DataTypes.INTEGER,
       allowNull: false
+    },
+    deliverableUrl: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: null
+    },
+    deliverableFileName: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: null
     }
   }, {
     sequelize,

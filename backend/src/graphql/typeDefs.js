@@ -18,6 +18,7 @@ const typeDefs = gql`
     skills: String
     hourlyRate: Float
     portfolioUrl: String
+    category: String
   }
 
   type Job {
@@ -29,6 +30,8 @@ const typeDefs = gql`
     category: String!
     client: User
     proposals: [Proposal]
+    deliverableUrl: String
+    deliverableFileName: String
   }
 
   type Proposal {
@@ -114,12 +117,13 @@ const typeDefs = gql`
     login(email: String!, password: String!): AuthPayload
     
     # --- Profile (#10) ---
-    updateProfile(bio: String, skills: String, hourlyRate: Float): Profile
+    updateProfile(bio: String, skills: String, hourlyRate: Float, category: String): Profile
 
     # --- Jobs & Proposals (#11, #16, #18) ---
     createJob(title: String!, description: String!, budget: Float!, category: String): Job
     submitProposal(jobId: ID!, coverLetter: String!, bidAmount: Float!): Proposal
     acceptProposal(proposalId: ID!): Proposal
+    completeJob(jobId: ID!, deliverableUrl: String!, deliverableFileName: String!): Job
     
     # --- Chat (#20) ---
     sendMessage(receiverId: ID!, content: String!, jobId: ID): Message

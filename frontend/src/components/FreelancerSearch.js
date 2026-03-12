@@ -16,10 +16,24 @@ const SEARCH_FREELANCERS = gql`
         bio
         skills
         hourlyRate
+        category
       }
     }
   }
 `;
+
+const getCategoryLabel = (category) => {
+  const labels = {
+    WEB_DEV: 'Web Development',
+    MOBILE_DEV: 'Mobile Development',
+    DESIGN: 'Design',
+    WRITING: 'Writing',
+    MARKETING: 'Marketing',
+    OTHER: 'Other'
+  };
+
+  return labels[category] || category;
+};
 
 const FreelancerSearch = () => {
   const [query, setQuery] = useState('');
@@ -157,6 +171,11 @@ const FreelancerSearch = () => {
 
             <div className="mb-4">
               <p className="text-slate-700 mb-2 text-sm">{freelancer.profile?.bio || 'No bio available'}</p>
+              {freelancer.profile?.category && (
+                <span className="inline-block bg-indigo-100 text-indigo-700 text-xs px-2 py-1 rounded-full mb-2">
+                  {getCategoryLabel(freelancer.profile.category)}
+                </span>
+              )}
               <p className="text-xs text-slate-500 mb-2">
                 <strong>Skills:</strong> {freelancer.profile?.skills || 'Not specified'}
               </p>

@@ -1,10 +1,43 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
+import { gql } from '@apollo/client';
+import { useQuery } from '@apollo/client/react/index.js';
 import { Rocket, ShieldCheck, Zap, Code, Palette, Pen, TrendingUp, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+
+const GET_FEATURED_FREELANCERS = gql`
+  query GetFeaturedFreelancers {
+    searchFreelancers {
+      id
+      username
+      averageRating
+      profile {
+        bio
+        skills
+        hourlyRate
+      }
+    }
+  }
+`;
 
 const Home = () => {
   const [searchKeyword, setSearchKeyword] = useState('');
   const navigate = useNavigate();
+  const { data: freelancerData, loading: freelancerLoading } = useQuery(GET_FEATURED_FREELANCERS);
+
+  const featuredFreelancers = useMemo(() => {
+    const freelancers = freelancerData?.searchFreelancers || [];
+
+    return [...freelancers]
+      .sort((left, right) => {
+        const ratingDiff = (right.averageRating || 0) - (left.averageRating || 0);
+        if (ratingDiff !== 0) return ratingDiff;
+
+        const leftRate = Number(left.profile?.hourlyRate || 0);
+        const rightRate = Number(right.profile?.hourlyRate || 0);
+        return rightRate - leftRate;
+      })
+      .slice(0, 3);
+  }, [freelancerData]);
 
   const handleSearch = () => {
     if (searchKeyword.trim()) {
@@ -148,27 +181,49 @@ const Home = () => {
             <a href="/freelancers" className="text-indigo-600 font-bold hover:text-indigo-700">View All →</a>
           </div>
           <div className="grid md:grid-cols-3 gap-6">
-            {[
-              { name: 'Sarah Chen', title: 'Full Stack Developer', rating: 4.9, projects: 152, skills: 'React, Node.js, MongoDB' },
-              { name: 'Alex Rodriguez', title: 'UI/UX Designer', rating: 4.8, projects: 98, skills: 'Figma, Adobe XD, Sketch' },
-              { name: 'Jordan Blake', title: 'Content Writer', rating: 4.9, projects: 245, skills: 'Blog, SEO, Copywriting' }
-            ].map((freelancer, i) => (
-              <div key={i} className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-lg transition-all">
+            {freelancerLoading ? (
+              Array.from({ length: 3 }).map((_, index) => (
+                <div key={index} className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 animate-pulse">
+                  <div className="w-16 h-16 bg-slate-200 rounded-full mb-4 mx-auto"></div>
+                  <div className="h-5 bg-slate-200 rounded w-2/3 mx-auto mb-2"></div>
+                  <div className="h-4 bg-slate-200 rounded w-1/2 mx-auto mb-3"></div>
+                  <div className="h-4 bg-slate-200 rounded w-1/3 mx-auto mb-3"></div>
+                  <div className="h-3 bg-slate-200 rounded w-5/6 mx-auto mb-2"></div>
+                  <div className="h-3 bg-slate-200 rounded w-2/3 mx-auto mb-4"></div>
+                  <div className="h-10 bg-slate-200 rounded-lg w-full"></div>
+                </div>
+              ))
+            ) : featuredFreelancers.length > 0 ? (
+              featuredFreelancers.map((freelancer) => (
+              <div key={freelancer.id} className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-lg transition-all">
                 <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mb-4 mx-auto">
                   <Users className="text-indigo-600" size={32} />
                 </div>
-                <h3 className="text-lg font-bold text-slate-900 text-center mb-1">{freelancer.name}</h3>
-                <p className="text-sm text-slate-600 text-center mb-3">{freelancer.title}</p>
+                <h3 className="text-lg font-bold text-slate-900 text-center mb-1">{freelancer.username}</h3>
+                <p className="text-sm text-slate-600 text-center mb-3">
+                  {freelancer.profile?.bio || 'Available for new work on HireHive'}
+                </p>
                 <div className="flex justify-center items-center gap-2 mb-3">
-                  <span className="text-yellow-500 font-bold">★ {freelancer.rating}</span>
-                  <span className="text-slate-500 text-sm">({freelancer.projects} projects)</span>
+                  <span className="text-yellow-500 font-bold">★ {(freelancer.averageRating || 0).toFixed(1)}</span>
+                  <span className="text-slate-500 text-sm">
+                    {freelancer.profile?.hourlyRate ? `$${freelancer.profile.hourlyRate}/hr` : 'Rate on request'}
+                  </span>
                 </div>
-                <p className="text-xs text-slate-600 text-center mb-4">{freelancer.skills}</p>
-                <button className="w-full bg-indigo-600 text-white py-2 rounded-lg font-semibold hover:bg-indigo-700 transition text-sm">
-                  View Profile
+                <p className="text-xs text-slate-600 text-center mb-4">
+                  {freelancer.profile?.skills || 'Skills not added yet'}
+                </p>
+                <button
+                  onClick={() => navigate(`/messages?user=${freelancer.id}&username=${encodeURIComponent(freelancer.username)}`)}
+                  className="w-full bg-indigo-600 text-white py-2 rounded-lg font-semibold hover:bg-indigo-700 transition text-sm"
+                >
+                  Contact Freelancer
                 </button>
               </div>
-            ))}
+            ))) : (
+              <div className="md:col-span-3 bg-white p-10 rounded-2xl shadow-sm border border-slate-100 text-center text-slate-500">
+                No freelancers are available yet.
+              </div>
+            )}
           </div>
         </div>
       </section>

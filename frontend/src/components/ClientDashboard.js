@@ -9,7 +9,9 @@ import {
   MessageCircle,
   PlusCircle,
   Clock,
-  DollarSign
+  DollarSign,
+  Download,
+  FileText
 } from 'lucide-react';
 
 // --- 1. DEFINE THE QUERY ---
@@ -21,6 +23,8 @@ const GET_CLIENT_JOBS = gql`
       budget
       status
       category
+      deliverableUrl
+      deliverableFileName
       client {
         id
       }
@@ -52,6 +56,11 @@ const ACCEPT_PROPOSAL = gql`
 const ClientDashboard = () => {
   const navigate = useNavigate();
   const userId = localStorage.getItem('userId');
+
+  const getAcceptedProposal = (job) => {
+    if (!job?.proposals?.length) return null;
+    return job.proposals.find((proposal) => proposal.status === 'ACCEPTED') || null;
+  };
 
   // --- 3. EXECUTE THE HOOKS ---
   const { loading, error, data } = useQuery(GET_CLIENT_JOBS);
@@ -92,6 +101,9 @@ const ClientDashboard = () => {
               <span className="block text-2xl font-black">{inProgressJobs}</span> In Progress
             </div>
             <div className="bg-white/10 px-4 py-2 rounded-xl backdrop-blur-sm">
+              <span className="block text-2xl font-black">{myJobs.filter(j => j.status === 'COMPLETED').length}</span> Completed
+            </div>
+            <div className="bg-white/10 px-4 py-2 rounded-xl backdrop-blur-sm">
               <span className="block text-2xl font-black">{totalProposals}</span> Total Bids
             </div>
           </div>
@@ -123,13 +135,16 @@ const ClientDashboard = () => {
         </div>
       ) : (
         <div className="space-y-8">
-          {myJobs.map((job) => (
+          {myJobs.map((job) => {
+            const acceptedProposal = getAcceptedProposal(job);
+            return (
             <div key={job.id} className="bg-white rounded-3xl shadow-md border border-slate-200 overflow-hidden transition-all hover:shadow-lg">
               
               {/* Job Status Bar */}
               <div className={`h-2 w-full ${
                 job.status === 'OPEN' ? 'bg-green-400' : 
-                job.status === 'IN_PROGRESS' ? 'bg-blue-500' : 'bg-slate-400'
+                job.status === 'IN_PROGRESS' ? 'bg-blue-500' : 
+                job.status === 'COMPLETED' ? 'bg-purple-500' : 'bg-slate-400'
               }`}></div>
               
               {/* Job Header Info */}
@@ -138,7 +153,8 @@ const ClientDashboard = () => {
                   <div className="flex items-center gap-3 mb-2">
                     <span className={`px-3 py-1 text-xs font-black rounded-full uppercase tracking-wide ${
                       job.status === 'OPEN' ? 'bg-green-100 text-green-700' : 
-                      job.status === 'IN_PROGRESS' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-700'
+                      job.status === 'IN_PROGRESS' ? 'bg-blue-100 text-blue-700' : 
+                      job.status === 'COMPLETED' ? 'bg-purple-100 text-purple-700' : 'bg-slate-100 text-slate-700'
                     }`}>
                       {job.status.replace('_', ' ')}
                     </span>
@@ -152,6 +168,52 @@ const ClientDashboard = () => {
                   <span>{job.budget.toLocaleString()}</span>
                 </div>
               </div>
+
+              {/* Client Review CTA for completed projects */}
+              {job.status === 'COMPLETED' && acceptedProposal?.freelancer?.id && (
+                <div className="px-6 md:px-8 py-4 bg-amber-50 border-b border-amber-100 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+                  <p className="text-sm text-amber-800 font-semibold">
+                    Project finished with @{acceptedProposal.freelancer.username}. Leave a review to help the freelancer community.
+                  </p>
+                  <button
+                    onClick={() => {
+                      if (!acceptedProposal?.freelancer?.id) return;
+                      navigate(
+                        `/submit-review?jobId=${job.id}&revieweeId=${acceptedProposal.freelancer.id}&username=${encodeURIComponent(acceptedProposal.freelancer.username || '')}`
+                      );
+                    }}
+                    className="px-5 py-2.5 bg-amber-600 text-white rounded-xl font-bold hover:bg-amber-700 transition-all"
+                  >
+                    Give Review
+                  </button>
+                </div>
+              )}
+
+              {/* Deliverable Section for COMPLETED jobs */}
+              {job.status === 'COMPLETED' && job.deliverableUrl && (
+                <div className="p-6 md:px-8 bg-purple-50 border-b border-purple-100">
+                  <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-purple-100 p-3 rounded-xl">
+                        <FileText className="text-purple-600" size={24} />
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-purple-900">Project Deliverable</h4>
+                        <p className="text-sm text-purple-600">{job.deliverableFileName}</p>
+                      </div>
+                    </div>
+                    <a
+                      href={job.deliverableUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-xl font-bold hover:bg-purple-700 transition-all shadow-lg hover:shadow-xl"
+                    >
+                      <Download size={18} />
+                      Download File
+                    </a>
+                  </div>
+                </div>
+              )}
 
               {/* Proposals Section */}
               <div className="p-6 md:p-8 bg-slate-50/50">
@@ -195,7 +257,7 @@ const ClientDashboard = () => {
                         <div className="flex md:flex-col gap-3 justify-end items-end shrink-0 pt-2 md:pt-0">
                           {/* Chat Button */}
                           <button 
-                            onClick={() => navigate('/messages')}
+                            onClick={() => navigate(`/messages?user=${proposal.freelancer?.id}&username=${encodeURIComponent(proposal.freelancer?.username || '')}`)}
                             className="w-full justify-center md:w-auto flex items-center gap-2 px-5 py-2.5 bg-white border-2 border-slate-200 text-slate-600 rounded-xl hover:border-indigo-600 hover:text-indigo-600 font-bold transition group"
                             title="Discuss with freelancer"
                           >
@@ -225,7 +287,8 @@ const ClientDashboard = () => {
                 )}
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
