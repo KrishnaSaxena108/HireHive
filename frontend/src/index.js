@@ -7,7 +7,7 @@ import App from './App';
 import { 
   ApolloClient, 
   InMemoryCache, 
-  createHttpLink 
+  createHttpLink
 } from '@apollo/client';
 
 // 2. React-Specific Imports (The fix for your error)

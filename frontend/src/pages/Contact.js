@@ -1,127 +1,154 @@
 import React, { useState } from 'react';
+import { Mail, Phone, MapPin, Send, ChevronDown } from 'lucide-react';
 import { gql } from '@apollo/client';
 import { useMutation } from '@apollo/client/react/index.js';
-import { Mail, Phone, MapPin, Send, CheckCircle, MessageSquare, Clock } from 'lucide-react';
 
-const SUBMIT_CONTACT = gql`
+const SUBMIT_CONTACT_FORM = gql`
   mutation SubmitContactForm($name: String!, $email: String!, $message: String!) {
     submitContactForm(name: $name, email: $email, message: $message) {
-      success message
+      id
     }
   }
 `;
 
-const CONTACT_INFO = [
-  { icon: Mail, label: 'Email us', value: 'support@hirehive.com', color: 'bg-indigo-50 text-indigo-600' },
-  { icon: Phone, label: 'Call us', value: '+1 (555) 000-HIRE', color: 'bg-emerald-50 text-emerald-600' },
-  { icon: MapPin, label: 'Visit us', value: '123 Tech Ave, San Francisco', color: 'bg-amber-50 text-amber-600' },
-  { icon: Clock, label: 'Support hours', value: 'Mon–Fri, 9am–6pm PST', color: 'bg-purple-50 text-purple-600' },
-];
-
 const Contact = () => {
-  const [formData, setFormData] = useState({ name: '', email: '', subject: 'General Inquiry', message: '' });
-  const [submitted, setSubmitted] = useState(false);
+  const [status, setStatus] = useState('');
+  const [expandedFaq, setExpandedFaq] = useState(null);
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [subject, setSubject] = useState('General Inquiry');
+  const [message, setMessage] = useState('');
 
-  const [submitContact, { loading, error }] = useMutation(SUBMIT_CONTACT, {
-    onCompleted: () => setSubmitted(true),
+  const [submitContactForm] = useMutation(SUBMIT_CONTACT_FORM, {
+    onCompleted: () => setStatus('success'),
+    onError: () => setStatus('error')
   });
-
-  const set = (field) => (e) => setFormData({ ...formData, [field]: e.target.value });
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    submitContact({ variables: { name: formData.name, email: formData.email, message: `[${formData.subject}] ${formData.message}` } });
+    setStatus('sending');
+    const fullMessage = `[${subject}] ${message}`;
+    submitContactForm({ variables: { name, email, message: fullMessage } });
   };
 
+  const faqs = [
+    {
+      question: 'How do I post a job?',
+      answer: 'To post a job, log in as a client, click "Post a Job" in the navigation, fill out the job details including title, description, budget, and deadline, then submit. Freelancers will start bidding on your job.'
+    },
+    {
+      question: 'How are freelancers rated?',
+      answer: 'Freelancers are rated based on completed projects and client reviews. After a project is completed, clients can submit a star rating (1-5) and written review. The average rating appears on the freelancer\'s profile.'
+    },
+    {
+      question: 'What payment methods are available?',
+      answer: 'We support credit card, debit card, and bank transfer. All payments are held in escrow until the project is completed and approved by the client.'
+    },
+    {
+      question: 'Can I cancel a contract?',
+      answer: 'Yes, contracts can be canceled by either party with mutual agreement. If there\'s a dispute, our support team will mediate the situation.'
+    },
+    {
+      question: 'How long does it take to find a freelancer?',
+      answer: 'Most projects receive proposals within hours of posting. The time to find the right freelancer depends on your project clarity and budget competitiveness.'
+    },
+    {
+      question: 'Is my data secure?',
+      answer: 'Yes, we use industry-standard encryption for all data transmission. Your personal information is never shared with third parties without your consent.'
+    }
+  ];
+
   return (
-    <div>
-      {/* Hero */}
-      <section className="bg-gradient-to-br from-indigo-950 via-indigo-900 to-purple-900 text-white py-20 px-6 text-center">
-        <div className="max-w-xl mx-auto">
-          <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-5">
-            <MessageSquare size={26} />
-          </div>
-          <h1 className="text-4xl md:text-5xl font-extrabold mb-4">Get in touch</h1>
-          <p className="text-indigo-200 text-lg">Have questions? We'd love to hear from you. Our team responds within 24 hours.</p>
-        </div>
-      </section>
-
-      <section className="page-wrapper py-16">
-        <div className="grid lg:grid-cols-3 gap-12 max-w-5xl">
-
-          {/* Info column */}
-          <div className="space-y-5">
-            <div className="mb-2">
-              <h2 className="text-xl font-extrabold text-slate-900 mb-1">Contact details</h2>
-              <p className="text-sm text-slate-500">Multiple ways to reach our team.</p>
+    <div className="min-h-screen py-16 px-4 md:px-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Contact Section */}
+        <div className="grid lg:grid-cols-3 gap-12 mb-20">
+          
+          {/* Contact Info Column */}
+          <div className="lg:col-span-1 space-y-8">
+            <div>
+              <h1 className="text-4xl font-black text-slate-900 mb-4">Get in touch.</h1>
+              <p className="text-slate-600">Have questions about our platform? We're here to help you 24/7.</p>
             </div>
-            {CONTACT_INFO.map(({ icon: Icon, label, value, color }) => (
-              <div key={label} className="card p-5 flex items-start gap-4">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${color}`}>
-                  <Icon size={18} />
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">{label}</p>
-                  <p className="text-sm font-semibold text-slate-800 mt-0.5">{value}</p>
-                </div>
+
+            <div className="space-y-6">
+              <div className="flex items-start space-x-4">
+                <div className="ui-glass p-3 rounded-xl text-teal-600"><Mail /></div>
+                <div><p className="font-bold">Email us</p><p className="text-slate-500">support@hirehive.com</p></div>
+              </div>
+              <div className="flex items-start space-x-4">
+                <div className="ui-glass p-3 rounded-xl text-teal-600"><Phone /></div>
+                <div><p className="font-bold">Call us</p><p className="text-slate-500">+1 (555) 000-HIRE</p></div>
+              </div>
+              <div className="flex items-start space-x-4">
+                <div className="ui-glass p-3 rounded-xl text-teal-600"><MapPin /></div>
+                <div><p className="font-bold">Visit us</p><p className="text-slate-500">123 Tech Avenue, San Francisco, CA</p></div>
+              </div>
+            </div>
+          </div>
+
+          {/* Contact Form Column */}
+          <div className="lg:col-span-2 ui-glass rounded-3xl p-10">
+            <form onSubmit={handleSubmit} className="grid md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-700">Full Name</label>
+                <input type="text" value={name} onChange={(e) => setName(e.target.value)} required className="w-full p-4 bg-white/90 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-700">Email Address</label>
+                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="w-full p-4 bg-white/90 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none" />
+              </div>
+              <div className="md:col-span-2 space-y-2">
+                <label className="text-sm font-bold text-slate-700">Subject</label>
+                <select value={subject} onChange={(e) => setSubject(e.target.value)} className="w-full p-4 bg-white/90 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none">
+                  <option>General Inquiry</option>
+                  <option>Billing Question</option>
+                  <option>Report an Issue</option>
+                </select>
+              </div>
+              <div className="md:col-span-2 space-y-2">
+                <label className="text-sm font-bold text-slate-700">Message</label>
+                <textarea rows="5" value={message} onChange={(e) => setMessage(e.target.value)} required className="w-full p-4 bg-white/90 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none"></textarea>
+              </div>
+              
+              <button 
+                disabled={status === 'sending'}
+                className="md:col-span-2 bg-gradient-to-r from-teal-500 to-cyan-500 text-white font-bold py-4 rounded-xl flex items-center justify-center space-x-2 hover:shadow-xl hover:shadow-teal-500/30 transition"
+              >
+                {status === 'success' ? 'Message Sent!' : status === 'sending' ? 'Sending...' : status === 'error' ? 'Error Sending' : (
+                  <><Send size={20} /> <span>Send Message</span></>
+                )}
+              </button>
+            </form>
+          </div>
+        </div>
+
+        {/* FAQ Section */}
+        <div className="max-w-3xl mx-auto">
+          <h2 className="text-3xl font-black text-slate-900 mb-12 text-center">Frequently Asked Questions</h2>
+          <div className="space-y-4">
+            {faqs.map((faq, i) => (
+              <div key={i} className="ui-glass rounded-2xl overflow-hidden">
+                <button
+                  onClick={() => setExpandedFaq(expandedFaq === i ? null : i)}
+                  className="w-full p-6 flex justify-between items-center hover:bg-slate-50 transition-colors"
+                >
+                  <h3 className="text-lg font-bold text-slate-900 text-left">{faq.question}</h3>
+                  <ChevronDown
+                    size={24}
+                    className={`text-teal-600 transition-transform ${expandedFaq === i ? 'rotate-180' : ''}`}
+                  />
+                </button>
+                {expandedFaq === i && (
+                  <div className="px-6 pb-6 border-t border-slate-200">
+                    <p className="text-slate-600 leading-relaxed">{faq.answer}</p>
+                  </div>
+                )}
               </div>
             ))}
           </div>
-
-          {/* Form column */}
-          <div className="lg:col-span-2 card p-8">
-            {submitted ? (
-              <div className="py-16 flex flex-col items-center text-center">
-                <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mb-4">
-                  <CheckCircle className="text-emerald-600" size={32} />
-                </div>
-                <h3 className="text-xl font-extrabold text-slate-900 mb-1">Message Received!</h3>
-                <p className="text-slate-500 text-sm">We'll get back to you within 24 hours.</p>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-5">
-                <h2 className="text-xl font-extrabold text-slate-900 mb-2">Send a message</h2>
-
-                <div className="grid sm:grid-cols-2 gap-5">
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-1.5">Full Name</label>
-                    <input required type="text" placeholder="Jane Smith" className="input-field" onChange={set('name')} />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-1.5">Email Address</label>
-                    <input required type="email" placeholder="jane@example.com" className="input-field" onChange={set('email')} />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Subject</label>
-                  <select className="input-field" onChange={set('subject')}>
-                    <option>General Inquiry</option>
-                    <option>Billing Question</option>
-                    <option>Report an Issue</option>
-                    <option>Partnership</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Message</label>
-                  <textarea required rows={5} placeholder="Tell us how we can help..." className="input-field resize-none" onChange={set('message')} />
-                </div>
-
-                {error && (
-                  <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-100 text-red-700 text-sm rounded-xl">
-                    {error.message}
-                  </div>
-                )}
-
-                <button type="submit" disabled={loading} className="btn-primary py-3.5 px-8 text-base">
-                  {loading ? 'Sending...' : <><Send size={16} /> Send Message</>}
-                </button>
-              </form>
-            )}
-          </div>
         </div>
-      </section>
+      </div>
     </div>
   );
 };

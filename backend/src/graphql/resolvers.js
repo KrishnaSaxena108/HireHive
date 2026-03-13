@@ -1,7 +1,8 @@
-const { User, Job, Proposal, Message, Profile, sequelize } = require('../../models');
-const { Op } = require('sequelize');
+const nodemailer = require('nodemailer');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { User, Job, Proposal, Message, Notification, Review, Profile, sequelize } = require('../../models');
+const { Op } = require('sequelize');
 
 const generateToken = (user) => {
   return jwt.sign(
@@ -14,52 +15,151 @@ const generateToken = (user) => {
 const resolvers = {
   Query: {
     users: async () => await User.findAll({ include: ['postedJobs', 'profile'] }),
+    me: async (_, __, { user }) => {
+      if (!user) return null;
+      return await User.findByPk(user.id, { include: ['postedJobs','profile'] });
+    },
     jobs: async () => await Job.findAll({ include: ['client', 'proposals'] }),
     job: async (_, { id }) => await Job.findByPk(id, { include: ['client', 'proposals'] }),
-
+    
     myProposals: async (_, __, { user }) => {
       if (!user) throw new Error("Unauthorized");
       return await Proposal.findAll({ where: { freelancerId: user.id }, include: ['job'] });
     },
-
-    freelancerProposals: async (_, __, { user }) => {
-      if (!user) throw new Error("Unauthorized");
-      return await Proposal.findAll({ where: { freelancerId: user.id }, include: ['job'] });
+    popularCategories: async () => {
+      // Return categories sorted by job count
+      const categories = await Job.findAll({
+        attributes: [
+          'category',
+          [sequelize.fn('COUNT', sequelize.col('category')), 'count']
+        ],
+        group: ['category'],
+        order: [[sequelize.fn('COUNT', sequelize.col('category')), 'DESC']],
+        limit: 6
+      });
+      return categories.map(cat => cat.category);
+    },
+    notifications: async (_, { userId }) => {
+      return await Notification.findAll({ where: { userId }, order: [['createdAt','DESC']] });
+    },
+    reviewsByUser: async (_, { userId }) => {
+      return await Review.findAll({
+        where: { revieweeId: userId },
+        include: ['reviewer','job']
+      });
+    },
+    reviewsByJob: async (_, { jobId }) => {
+      return await Review.findAll({
+        where: { jobId },
+        include: ['reviewer','reviewee']
+      });
+    },
+    jobsByCategory: async (_, { category }) => {
+      return await Job.findAll({
+        where: { category, status: 'OPEN' },
+        include: ['client', 'proposals']
+      });
+    },
+    searchJobs: async (_, { keyword, category, minBudget, maxBudget, status }) => {
+      const whereClause = {};
+      
+      // keyword search in title and description
+      if (keyword) {
+        whereClause[Op.or] = [
+          { title: { [Op.like]: `%${keyword}%` } },
+          { description: { [Op.like]: `%${keyword}%` } }
+        ];
+      }
+      
+      // category filter
+      if (category) whereClause.category = category;
+      
+      // status filter
+      if (status) whereClause.status = status;
+      
+      // budget range filter
+      if (minBudget !== null && minBudget !== undefined) {
+        whereClause.budget = whereClause.budget || {};
+        whereClause.budget[Op.gte] = minBudget;
+      }
+      if (maxBudget !== null && maxBudget !== undefined) {
+        whereClause.budget = whereClause.budget || {};
+        whereClause.budget[Op.lte] = maxBudget;
+      }
+      
+      return await Job.findAll({
+        where: whereClause,
+        include: ['client', 'proposals'],
+        limit: 50,
+        order: [['createdAt', 'DESC']]
+      });
     },
 
-    messages: async (_, { receiverId }, { user }) => {
+    messages: async (_, { receiverId }) => {
+      return await Message.findAll({ where: { receiverId }, order: [['createdAt','DESC']] });
+    },
+    userMessages: async (_, __, { user }) => {
       if (!user) throw new Error("Unauthorized");
       return await Message.findAll({
-        where: {
-          [Op.or]: [
-            { senderId: user.id, receiverId: receiverId },
-            { senderId: receiverId, receiverId: user.id },
-          ],
-        },
-        include: [
-          { model: User, as: 'sender' },
-          { model: User, as: 'receiver' },
-        ],
-        order: [['createdAt', 'ASC']],
+        where: { [Op.or]: [{ senderId: user.id }, { receiverId: user.id }] },
+        include: ['sender', 'receiver'],
+        order: [['createdAt', 'DESC']]
       });
     },
 
     searchFreelancers: async (_, { query, category }) => {
-      const profileWhere = {};
-      if (query) {
-        profileWhere[Op.or] = [
-          { skills: { [Op.like]: `%${query}%` } },
-          { bio: { [Op.like]: `%${query}%` } },
-        ];
-      }
-      return await User.findAll({
+      let users = await User.findAll({
         where: { role: 'FREELANCER' },
-        include: [{ model: Profile, as: 'profile', where: Object.keys(profileWhere).length ? profileWhere : undefined }],
+        include: ['profile']
       });
+
+      if (query) {
+        const q = query.toLowerCase();
+        users = users.filter(u => 
+          u.username.toLowerCase().includes(q) || 
+          (u.profile?.skills && u.profile.skills.toLowerCase().includes(q)) ||
+          (u.profile?.bio && u.profile.bio.toLowerCase().includes(q))
+        );
+      }
+
+      if (category) {
+        users = users.filter(u => u.profile?.category === category);
+      }
+      
+      return users;
     },
 
-    popularCategories: async () => {
-      return ['Web Development', 'Graphic Design', 'Content Writing', 'Mobile Apps', 'Data Science', 'SEO & Marketing'];
+    // --- Admin Queries ---
+    adminUsers: async (_, __, { user }) => {
+      if (!user || user.role !== 'ADMIN') throw new Error("Admin access required");
+      return await User.findAll({ include: ['postedJobs', 'profile'] });
+    },
+    adminJobs: async (_, __, { user }) => {
+      if (!user || user.role !== 'ADMIN') throw new Error("Admin access required");
+      return await Job.findAll({ include: ['client', 'proposals'] });
+    },
+    adminProposals: async (_, __, { user }) => {
+      if (!user || user.role !== 'ADMIN') throw new Error("Admin access required");
+      return await Proposal.findAll({ include: ['job', 'freelancer'] });
+    },
+    adminStats: async (_, __, { user }) => {
+      if (!user || user.role !== 'ADMIN') throw new Error("Admin access required");
+      
+      const [totalUsers, totalJobs, totalProposals, activeJobs, completedJobs] = await Promise.all([
+        User.count(),
+        Job.count(),
+        Proposal.count(),
+        Job.count({ where: { status: 'OPEN' } }),
+        Job.count({ where: { status: 'COMPLETED' } })
+      ]);
+
+      return {
+        totalUsers,
+        totalJobs,
+        totalProposals,
+        activeJobs,
+        completedJobs
+      };
     },
   },
 
@@ -70,6 +170,12 @@ const resolvers = {
       const hashedPassword = await bcrypt.hash(password, 10);
       const user = await User.create({ username, email, password: hashedPassword, role });
       io.emit('notification', { message: `Welcome our newest ${role.toLowerCase()}, ${username}!` });
+      // persist welcome notification for this user
+      await Notification.create({
+        userId: user.id,
+        message: `Welcome, ${username}! Your account has been created.`,
+        isRead: false
+      });
       const token = generateToken(user);
       return { token, user };
     },
@@ -82,12 +188,31 @@ const resolvers = {
       const token = generateToken(user);
       return { token, user };
     },
+    markNotificationRead: async (_, { id }) => {
+      const notif = await Notification.findByPk(id);
+      if (!notif) throw new Error("Notification not found");
+      await notif.update({ isRead: true });
+      return notif;
+    },
 
     // --- JOB MANAGEMENT (#16) ---
-    createJob: async (_, { title, description, budget }, { io, user }) => {
+    createJob: async (_, { title, description, budget, category }, { io, user }) => {
       if (!user) throw new Error("Unauthorized");
-      const job = await Job.create({ title, description, budget, clientId: user.id, status: 'OPEN' });
+      const job = await Job.create({ 
+        title, 
+        description, 
+        budget, 
+        category: category || 'OTHER',
+        clientId: user.id, 
+        status: 'OPEN' 
+      });
       io.emit('job_created', job);
+      // persist notification to client
+      await Notification.create({
+        userId: user.id,
+        message: `Your job "${title}" in ${category || 'OTHER'} is now live.`,
+        isRead: false
+      });
       return job;
     },
 
@@ -99,6 +224,12 @@ const resolvers = {
       });
       const job = await Job.findByPk(jobId);
       io.to(`user_${job.clientId}`).emit('new_proposal', { jobId, proposalId: proposal.id });
+      // persist notification to job's client
+      await Notification.create({
+        userId: job.clientId,
+        message: `You have a new proposal for your job "${job.title}".`,
+        isRead: false
+      });
       return proposal;
     },
 
@@ -125,47 +256,210 @@ const resolvers = {
 
         // Notify Freelancer via Socket
         io.to(`user_${proposal.freelancerId}`).emit('proposal_accepted', { jobId: job.id });
+        // persist notification for freelancer
+        await Notification.create({
+          userId: proposal.freelancerId,
+          message: `Your proposal for "${job.title}" was accepted!`,
+          isRead: false
+        });
 
         return proposal;
       });
       return result;
     },
 
+    // --- Complete Job (Freelancer submits deliverable) ---
+    completeJob: async (_, { jobId, deliverableUrl, deliverableFileName }, { io, user }) => {
+      if (!user || user.role !== 'FREELANCER') throw new Error("Only freelancers can complete jobs");
+
+      // Verify the freelancer is assigned to this job
+      const proposal = await Proposal.findOne({
+        where: {
+          freelancerId: user.id,
+          jobId: jobId,
+          status: 'ACCEPTED'
+        }
+      });
+
+      if (!proposal) throw new Error("You are not assigned to this job");
+
+      const job = await Job.findByPk(jobId, { include: ['client'] });
+      if (!job) throw new Error("Job not found");
+      if (job.status !== 'IN_PROGRESS') throw new Error("Job is not in progress");
+
+      // Update job with deliverable and mark as completed
+      await job.update({
+        status: 'COMPLETED',
+        deliverableUrl,
+        deliverableFileName
+      });
+
+      // Notify the client
+      io.to(`user_${job.clientId}`).emit('job_completed', { jobId: job.id });
+      await Notification.create({
+        userId: job.clientId,
+        message: `Project "${job.title}" has been completed! The deliverable is ready for download.`,
+        isRead: false
+      });
+
+      return job;
+    },
+
     // --- CHAT & PROFILES (#20 & #10) ---
     sendMessage: async (_, { receiverId, content, jobId }, { io, user }) => {
       if (!user) throw new Error("Unauthorized");
       const message = await Message.create({ content, senderId: user.id, receiverId, jobId });
-      io.to(`user_${receiverId}`).emit('receive_message', message);
-      return message;
+      const fullMessage = await Message.findByPk(message.id, { include: ['sender', 'receiver'] });
+      io.to(`user_${receiverId}`).emit('receive_message', fullMessage);
+      // persist notification for receiver
+      await Notification.create({
+        userId: receiverId,
+        message: `New message from ${user.username}.`,
+        isRead: false
+      });
+      return fullMessage;
     },
 
-    updateProfile: async (_, { bio, skills, hourlyRate }, { user }) => {
+    updateProfile: async (_, { bio, skills, hourlyRate, category }, { user }) => {
       if (!user) throw new Error("Unauthorized");
       const [profile, created] = await Profile.findOrCreate({
         where: { userId: user.id },
-        defaults: { bio, skills, hourlyRate }
+        defaults: { bio, skills, hourlyRate, category }
       });
       if (!created) {
-        await profile.update({ bio, skills, hourlyRate });
+        await profile.update({ bio, skills, hourlyRate, category });
       }
       return profile;
     },
+    // --- Reviews & Ratings ---
+    submitReview: async (_, { revieweeId, jobId, rating, comment }, { user }) => {
+      if (!user) throw new Error("Unauthorized");
+      if (user.id === parseInt(revieweeId)) throw new Error("Cannot review yourself");
+      const job = await Job.findByPk(jobId);
+      if (!job) throw new Error("Job not found");
+      const existing = await Review.findOne({ where: { reviewerId: user.id, jobId } });
+      if (existing) throw new Error("Already reviewed this job");
+      const review = await Review.create({
+        rating, comment, reviewerId: user.id, revieweeId, jobId
+      });
+      return review;
+    },
 
+    // --- Contact Form ---
     submitContactForm: async (_, { name, email, message }) => {
-      return { id: Date.now().toString(), name, email, message };
-    },
-  },
+      // Create transporter
+      const transporter = nodemailer.createTransporter({
+        service: 'gmail', // or your email service
+        auth: {
+          user: process.env.EMAIL_USER || 'your-email@gmail.com',
+          pass: process.env.EMAIL_PASS || 'your-app-password'
+        }
+      });
 
-  Message: {
-    sender: async (message) => {
-      if (message.sender) return message.sender;
-      return await User.findByPk(message.senderId);
+      // Email options
+      const mailOptions = {
+        from: email,
+        to: 'admin@hirehive.com', // your admin email
+        subject: `Contact Form Submission from ${name}`,
+        text: `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`
+      };
+
+      try {
+        await transporter.sendMail(mailOptions);
+        console.log(`Contact form email sent from ${name} (${email})`);
+        return {
+          id: Date.now().toString(),
+          name,
+          email,
+          message
+        };
+      } catch (error) {
+        console.error('Email send error:', error);
+        throw new Error('Failed to send message. Please try again later.');
+      }
     },
-    receiver: async (message) => {
-      if (message.receiver) return message.receiver;
-      return await User.findByPk(message.receiverId);
+
+    // --- Admin Mutations ---
+    suspendUser: async (_, { userId }, { user }) => {
+      if (!user || user.role !== 'ADMIN') throw new Error("Admin access required");
+      const targetUser = await User.findByPk(userId);
+      if (!targetUser) throw new Error("User not found");
+      if (targetUser.role === 'ADMIN') throw new Error("Cannot suspend admin users");
+      
+      await targetUser.update({ role: 'SUSPENDED' });
+      return targetUser;
     },
+    activateUser: async (_, { userId }, { user }) => {
+      if (!user || user.role !== 'ADMIN') throw new Error("Admin access required");
+      const targetUser = await User.findByPk(userId);
+      if (!targetUser) throw new Error("User not found");
+      
+      await targetUser.update({ role: 'FREELANCER' }); // Default to freelancer
+      return targetUser;
+    },
+    deleteJob: async (_, { jobId }, { user }) => {
+      if (!user || user.role !== 'ADMIN') throw new Error("Admin access required");
+      const job = await Job.findByPk(jobId);
+      if (!job) throw new Error("Job not found");
+      
+      await job.destroy();
+      return true;
+    },
+    deleteProposal: async (_, { proposalId }, { user }) => {
+      if (!user || user.role !== 'ADMIN') throw new Error("Admin access required");
+      const proposal = await Proposal.findByPk(proposalId);
+      if (!proposal) throw new Error("Proposal not found");
+      
+      await proposal.destroy();
+      return true;
+    }
   },
+};
+
+// Field-level resolvers for nested relationships
+resolvers.User = {
+  profile: async (parent) => {
+    if (parent.profile) return parent.profile;
+    return await Profile.findOne({ where: { userId: parent.id } });
+  },
+  averageRating: async (parent) => {
+    const reviews = await Review.findAll({ where: { revieweeId: parent.id } });
+    if (reviews.length === 0) return 0;
+    const sum = reviews.reduce((acc, r) => acc + r.rating, 0);
+    return sum / reviews.length;
+  }
+};
+
+resolvers.Proposal = {
+  freelancer: async (parent) => {
+    if (parent.freelancer) return parent.freelancer;
+    if (!parent.freelancerId) return null;
+    return await User.findByPk(parent.freelancerId, { include: ['profile'] });
+  },
+  job: async (parent) => {
+    if (parent.job) return parent.job;
+    if (!parent.jobId) return null;
+    return await Job.findByPk(parent.jobId, { include: ['client'] });
+  }
+};
+
+resolvers.Message = {
+  createdAt: (parent) => {
+    if (!parent.createdAt) return null;
+    return new Date(parent.createdAt).toISOString();
+  }
+};
+
+resolvers.Job = {
+  client: async (parent) => {
+    if (parent.client) return parent.client;
+    if (!parent.clientId) return null;
+    return await User.findByPk(parent.clientId);
+  },
+  proposals: async (parent) => {
+    if (parent.proposals) return parent.proposals;
+    return await Proposal.findAll({ where: { jobId: parent.id } });
+  }
 };
 
 module.exports = resolvers;

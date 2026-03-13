@@ -8,6 +8,8 @@ const typeDefs = gql`
     role: String!
     profile: Profile
     postedJobs: [Job]
+    averageRating: Float
+    profilePictureUrl: String
   }
 
   type Profile {
@@ -16,6 +18,7 @@ const typeDefs = gql`
     skills: String
     hourlyRate: Float
     portfolioUrl: String
+    category: String
   }
 
   type Job {
@@ -24,8 +27,11 @@ const typeDefs = gql`
     description: String!
     budget: Float!
     status: String!
+    category: String!
     client: User
     proposals: [Proposal]
+    deliverableUrl: String
+    deliverableFileName: String
   }
 
   type Proposal {
@@ -39,13 +45,31 @@ const typeDefs = gql`
 
   type Message {
     id: ID!
-    content: String
-    senderId: ID
-    receiverId: ID
+    content: String!
+    senderId: ID!
+    receiverId: ID!
     jobId: ID
     createdAt: String
     sender: User
     receiver: User
+  }
+
+  type Notification {
+    id: ID!
+    message: String!
+    isRead: Boolean!
+    user: User
+    createdAt: String
+  }
+
+  type Review {
+    id: ID!
+    rating: Int!
+    comment: String
+    reviewer: User
+    reviewee: User
+    job: Job
+    createdAt: String
   }
 
   type ContactInquiry {
@@ -55,31 +79,74 @@ const typeDefs = gql`
     message: String!
   }
 
-  type AuthPayload {
-    token: String
-    user: User
+  type AdminStats {
+    totalUsers: Int!
+    totalJobs: Int!
+    totalProposals: Int!
+    activeJobs: Int!
+    completedJobs: Int!
   }
 
   type Query {
     users: [User]
+    me: User
     jobs: [Job]
+    jobsByCategory(category: String!): [Job]
+    searchJobs(keyword: String, category: String, minBudget: Float, maxBudget: Float, status: String): [Job]
     job(id: ID!): Job
     myProposals: [Proposal]
-    freelancerProposals: [Proposal]
     messages(receiverId: ID!): [Message]
+    userMessages: [Message]
+    freelancerProposals: [Proposal]
+    notifications(userId: ID!): [Notification]
+    reviewsByUser(userId: ID!): [Review]
+    reviewsByJob(jobId: ID!): [Review]
     searchFreelancers(query: String, category: String): [User]
     popularCategories: [String]
+
+    # --- Admin Queries ---
+    adminUsers: [User]
+    adminJobs: [Job]
+    adminProposals: [Proposal]
+    adminStats: AdminStats
   }
 
   type Mutation {
+    # --- Auth (#6, #7) ---
     register(username: String!, email: String!, password: String!, role: String!): AuthPayload
     login(email: String!, password: String!): AuthPayload
-    updateProfile(bio: String, skills: String, hourlyRate: Float): Profile
-    createJob(title: String!, description: String!, budget: Float!): Job
+    
+    # --- Profile (#10) ---
+    updateProfile(bio: String, skills: String, hourlyRate: Float, category: String): Profile
+
+    # --- Jobs & Proposals (#11, #16, #18) ---
+    createJob(title: String!, description: String!, budget: Float!, category: String): Job
     submitProposal(jobId: ID!, coverLetter: String!, bidAmount: Float!): Proposal
     acceptProposal(proposalId: ID!): Proposal
+    completeJob(jobId: ID!, deliverableUrl: String!, deliverableFileName: String!): Job
+    
+    # --- Chat (#20) ---
     sendMessage(receiverId: ID!, content: String!, jobId: ID): Message
+
+    # --- Notifications ---
+    markNotificationRead(id: ID!): Notification
+
+    # --- Reviews & Ratings ---
+    submitReview(revieweeId: ID!, jobId: ID!, rating: Int!, comment: String): Review
+
+    # --- Contact Form ---
     submitContactForm(name: String!, email: String!, message: String!): ContactInquiry
+
+    # --- Admin Mutations ---
+    suspendUser(userId: ID!): User
+    activateUser(userId: ID!): User
+    deleteJob(jobId: ID!): Boolean
+    deleteProposal(proposalId: ID!): Boolean
+  }
+
+  type AuthPayload {
+    token: String
+    user: User
   }
 `;
 

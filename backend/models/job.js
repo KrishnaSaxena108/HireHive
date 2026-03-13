@@ -13,6 +13,10 @@ module.exports = (sequelize, DataTypes) => {
       foreignKey: 'jobId', 
       as: 'proposals' 
     });
+      this.hasMany(models.Review, {
+        foreignKey: 'jobId',
+        as: 'reviews'
+      });
     }
   }
   Job.init({
@@ -33,9 +37,23 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.ENUM('OPEN', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'),
       defaultValue: 'OPEN'
     },
+    category: {
+      type: DataTypes.ENUM('WEB_DEV', 'MOBILE_DEV', 'DESIGN', 'WRITING', 'MARKETING', 'OTHER'),
+      defaultValue: 'OTHER'
+    },
     clientId: {
       type: DataTypes.INTEGER,
       allowNull: false
+    },
+    deliverableUrl: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: null
+    },
+    deliverableFileName: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: null
     }
   }, {
     sequelize,
