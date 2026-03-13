@@ -4,6 +4,15 @@ node_modules/
 # Environment Variables
 .env
 
+# Google Service Account credentials (never commit these!)
+backend/credentials/
+credentials/
+*.json.secret
+hirehive-490019-2e68ef4cce51.json
+
+# Generated uploads
+backend/uploads/
+
 # Build folders
 dist/
 build/

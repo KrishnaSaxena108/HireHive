@@ -1,170 +1,308 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { gql } from '@apollo/client';
 import { useQuery, useMutation } from '@apollo/client/react/index.js';
-import { Send, MessageSquare, Search, Circle } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
+import { MessageSquare, Send, User } from 'lucide-react';
 
-const GET_MESSAGES = gql`
-  query GetMessages($otherUserId: ID!) {
-    messages(otherUserId: $otherUserId) {
-      id content createdAt
-      sender { id username }
-      receiver { id username }
+const GET_USER_MESSAGES = gql`
+  query GetUserMessages {
+    userMessages {
+      id
+      content
+      senderId
+      receiverId
+      jobId
+      createdAt
+      sender {
+        id
+        username
+      }
+      receiver {
+        id
+        username
+      }
+    }
+  }
+`;
+
+const GET_FREELANCER_CONTACTS = gql`
+  query GetFreelancerContacts {
+    myProposals {
+      status
+      job {
+        client {
+          id
+          username
+        }
+      }
+    }
+  }
+`;
+
+const GET_CLIENT_CONTACTS = gql`
+  query GetClientContacts {
+    jobs {
+      proposals {
+        status
+        freelancer {
+          id
+          username
+        }
+      }
     }
   }
 `;
 
 const SEND_MESSAGE = gql`
-  mutation SendMessage($receiverId: ID!, $content: String!) {
-    sendMessage(receiverId: $receiverId, content: $content) {
-      id content createdAt
-      sender { id username }
+  mutation SendMessage($receiverId: ID!, $content: String!, $jobId: ID) {
+    sendMessage(receiverId: $receiverId, content: $content, jobId: $jobId) {
+      id
+      content
+      senderId
+      receiverId
+      createdAt
+      sender {
+        id
+        username
+      }
+      receiver {
+        id
+        username
+      }
     }
   }
 `;
 
-const DEMO_CONTACTS = [
-  { id: '1', username: 'alex_dev', lastMsg: 'Sounds great, let me know!', time: '2m ago', online: true },
-  { id: '2', username: 'sarah_design', lastMsg: 'I can start on Monday.', time: '1h ago', online: true },
-  { id: '3', username: 'mike_builds', lastMsg: 'Invoice sent for the project.', time: '3h ago', online: false },
-  { id: '4', username: 'julia_writes', lastMsg: 'Thanks for the opportunity!', time: '1d ago', online: false },
-];
-
 const Messages = () => {
-  const [selectedContact, setSelectedContact] = useState(null);
-  const [inputText, setInputText] = useState('');
-  const [search, setSearch] = useState('');
-  const messagesEndRef = useRef(null);
+  const [selectedConversation, setSelectedConversation] = useState(null);
+  const [newMessage, setNewMessage] = useState('');
+  const [searchParams] = useSearchParams();
+  const targetUserId = searchParams.get('user');
+  const targetUsername = searchParams.get('username');
+  const autoSelectedRef = useRef(false);
+  const userId = localStorage.getItem('userId');
+  const userRole = localStorage.getItem('userRole');
 
-  const { data, loading } = useQuery(GET_MESSAGES, {
-    variables: { otherUserId: selectedContact?.id || '0' },
-    skip: !selectedContact,
+  // Fetch messages
+  const { loading: msgLoading, error: msgError, data: msgData, refetch } = useQuery(GET_USER_MESSAGES, {
+    skip: !userId
   });
 
-  const [sendMessage, { loading: sending }] = useMutation(SEND_MESSAGE, {
-    onCompleted: () => setInputText(''),
-    refetchQueries: selectedContact ? [{ query: GET_MESSAGES, variables: { otherUserId: selectedContact.id } }] : [],
+  // Fetch contacts for freelancer
+  const { loading: freeLoading, data: freeData } = useQuery(GET_FREELANCER_CONTACTS, {
+    skip: !userId || userRole !== 'FREELANCER'
   });
 
+  // Fetch contacts for client
+  const { loading: clientLoading, data: clientData } = useQuery(GET_CLIENT_CONTACTS, {
+    skip: !userId || userRole !== 'CLIENT'
+  });
+
+  const [sendMessage] = useMutation(SEND_MESSAGE, {
+    onCompleted: () => {
+      setNewMessage('');
+      refetch();
+    }
+  });
+
+  // Build conversation list (must be before any early returns so hooks below work)
+  const conversationList = useMemo(() => {
+    const messages = msgData?.userMessages || [];
+    const conversationsMap = {};
+
+    messages.forEach(msg => {
+      const otherUserId = msg.senderId === userId ? msg.receiverId : msg.senderId;
+      const otherUser = msg.senderId === userId ? msg.receiver : msg.sender;
+      if (!otherUserId || !otherUser || !otherUser.id) return;
+      if (!conversationsMap[otherUserId]) {
+        conversationsMap[otherUserId] = { user: otherUser, messages: [] };
+      }
+      const exists = conversationsMap[otherUserId].messages.find(m => m.id === msg.id);
+      if (!exists) conversationsMap[otherUserId].messages.push(msg);
+    });
+
+    if (userRole === 'FREELANCER' && freeData?.myProposals) {
+      freeData.myProposals.forEach(proposal => {
+        if (proposal.status === 'ACCEPTED' && proposal.job?.client) {
+          const client = proposal.job.client;
+          if (!conversationsMap[client.id]) {
+            conversationsMap[client.id] = { user: client, messages: [] };
+          }
+        }
+      });
+    }
+
+    if (userRole === 'CLIENT' && clientData?.jobs) {
+      clientData.jobs.forEach(job => {
+        if (job.proposals) {
+          job.proposals.forEach(proposal => {
+            if (proposal.status === 'ACCEPTED' && proposal.freelancer) {
+              const freelancer = proposal.freelancer;
+              if (!conversationsMap[freelancer.id]) {
+                conversationsMap[freelancer.id] = { user: freelancer, messages: [] };
+              }
+            }
+          });
+        }
+      });
+    }
+
+    if (targetUserId && !conversationsMap[targetUserId]) {
+      conversationsMap[targetUserId] = {
+        user: { id: targetUserId, username: targetUsername || 'User' },
+        messages: []
+      };
+    }
+
+    return Object.values(conversationsMap);
+  }, [msgData, freeData, clientData, userId, userRole, targetUserId, targetUsername]);
+
+  // Auto-select conversation when navigated with URL params
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [data]);
+    if (targetUserId && !autoSelectedRef.current && !msgLoading) {
+      autoSelectedRef.current = true;
+      const existing = conversationList.find(c => c.user.id === targetUserId);
+      if (existing) {
+        setSelectedConversation(existing);
+      } else {
+        setSelectedConversation({
+          user: { id: targetUserId, username: targetUsername || 'User' },
+          messages: []
+        });
+      }
+    }
+  }, [targetUserId, targetUsername, conversationList, msgLoading]);
 
-  const handleSend = (e) => {
-    e.preventDefault();
-    if (!inputText.trim() || !selectedContact) return;
-    sendMessage({ variables: { receiverId: selectedContact.id, content: inputText.trim() } });
+  // Keep selectedConversation in sync with refreshed data
+  useEffect(() => {
+    if (selectedConversation) {
+      const updated = conversationList.find(c => c.user.id === selectedConversation.user.id);
+      if (updated && updated.messages.length !== selectedConversation.messages.length) {
+        setSelectedConversation(updated);
+      }
+    }
+  }, [conversationList, selectedConversation]);
+
+  if (!userId) {
+    return (
+      <div className="p-10 text-center">
+        Please <a href="/login" className="text-teal-600 font-semibold">log in</a> to view your messages.
+      </div>
+    );
+  }
+  if (msgLoading || freeLoading || clientLoading) return <div className="p-10 text-center">Loading messages...</div>;
+  if (msgError) return <div className="p-10 text-center text-red-500">Error: {msgError.message}</div>;
+
+  const handleSendMessage = () => {
+    if (!newMessage.trim() || !selectedConversation) return;
+    sendMessage({
+      variables: {
+        receiverId: selectedConversation.user.id,
+        content: newMessage.trim()
+      }
+    });
   };
 
-  const filtered = DEMO_CONTACTS.filter(c => c.username.toLowerCase().includes(search.toLowerCase()));
-  const currentUser = localStorage.getItem('username');
-
   return (
-    <div className="h-[calc(100vh-64px)] flex bg-white">
-      {/* Sidebar */}
-      <div className="w-80 border-r border-slate-100 flex flex-col shrink-0">
-        <div className="p-5 border-b border-slate-100">
-          <h2 className="text-lg font-extrabold text-slate-900 mb-4">Messages</h2>
-          <div className="relative">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
-            <input placeholder="Search conversations..." value={search} onChange={e => setSearch(e.target.value)}
-              className="input-field py-2 pl-10 text-sm" />
-          </div>
-        </div>
-        <div className="flex-1 overflow-y-auto">
-          {filtered.map(contact => (
-            <button key={contact.id} onClick={() => setSelectedContact(contact)}
-              className={`w-full text-left px-5 py-4 flex items-center gap-3 hover:bg-slate-50 transition-colors border-b border-slate-50 ${selectedContact?.id === contact.id ? 'bg-indigo-50 border-l-2 border-l-indigo-500' : ''}`}>
-              <div className="relative shrink-0">
-                <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center font-bold text-indigo-700 text-sm">
-                  {contact.username[0].toUpperCase()}
-                </div>
-                {contact.online && <Circle className="absolute -bottom-0.5 -right-0.5 fill-emerald-500 text-emerald-500" size={10} />}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between">
-                  <span className="font-semibold text-slate-900 text-sm">@{contact.username}</span>
-                  <span className="text-xs text-slate-400">{contact.time}</span>
-                </div>
-                <p className="text-xs text-slate-500 truncate mt-0.5">{contact.lastMsg}</p>
-              </div>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Chat area */}
-      {selectedContact ? (
-        <div className="flex-1 flex flex-col">
-          {/* Chat header */}
-          <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-3">
-            <div className="relative">
-              <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center font-bold text-indigo-700 text-sm">
-                {selectedContact.username[0].toUpperCase()}
-              </div>
-              {selectedContact.online && <Circle className="absolute -bottom-0.5 -right-0.5 fill-emerald-500 text-emerald-500" size={10} />}
-            </div>
-            <div>
-              <p className="font-bold text-slate-900">@{selectedContact.username}</p>
-              <p className="text-xs text-slate-400">{selectedContact.online ? 'Online now' : 'Offline'}</p>
-            </div>
-          </div>
-
-          {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-6 space-y-4">
-            {loading ? (
-              <div className="space-y-4">
-                {[1,2,3].map(i => (
-                  <div key={i} className={`flex ${i % 2 === 0 ? 'justify-end' : ''}`}>
-                    <div className="h-10 bg-slate-100 rounded-2xl w-48 animate-pulse" />
-                  </div>
-                ))}
-              </div>
-            ) : data?.messages?.length > 0 ? (
-              data.messages.map(msg => {
-                const isMe = msg.sender?.username === currentUser;
-                return (
-                  <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-xs lg:max-w-md px-4 py-2.5 rounded-2xl text-sm ${isMe ? 'bg-indigo-600 text-white rounded-br-md' : 'bg-slate-100 text-slate-900 rounded-bl-md'}`}>
-                      <p>{msg.content}</p>
-                      <p className={`text-[10px] mt-1 ${isMe ? 'text-indigo-200' : 'text-slate-400'}`}>
-                        {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+    <div className="max-w-6xl mx-auto p-4 md:p-6 min-h-screen">
+      <h1 className="text-3xl font-black text-slate-900 mb-8">Messages</h1>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Conversations List */}
+        <div className="ui-glass rounded-3xl p-6">
+          <h2 className="text-xl font-bold mb-4">Conversations</h2>
+          {conversationList.length === 0 ? (
+            <p className="text-slate-500">No messages yet</p>
+          ) : (
+            <div className="space-y-2">
+              {conversationList.map((conv) => (
+                <div
+                  key={conv.user.id}
+                  onClick={() => setSelectedConversation(conv)}
+                  className={`p-4 rounded-xl cursor-pointer transition ${
+                    selectedConversation?.user.id === conv.user.id
+                      ? 'bg-teal-100/80 border border-teal-300'
+                      : 'bg-white/80 hover:bg-slate-100'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center">
+                      <User size={20} className="text-teal-600" />
+                    </div>
+                    <div>
+                      <p className="font-bold text-slate-900">{conv.user.username}</p>
+                      <p className="text-sm text-slate-500">
+                        {conv.messages.length} message{conv.messages.length !== 1 ? 's' : ''}
                       </p>
                     </div>
                   </div>
-                );
-              })
-            ) : (
-              <div className="flex-1 flex items-center justify-center h-full">
-                <div className="text-center text-slate-400">
-                  <MessageSquare className="mx-auto mb-3" size={32} />
-                  <p className="font-medium text-sm">No messages yet</p>
-                  <p className="text-xs mt-1">Say hello to @{selectedContact.username}!</p>
                 </div>
-              </div>
-            )}
-            <div ref={messagesEndRef} />
-          </div>
+              ))}
+            </div>
+          )}
+        </div>
 
-          {/* Input */}
-          <form onSubmit={handleSend} className="p-4 border-t border-slate-100 flex items-center gap-3">
-            <input value={inputText} onChange={e => setInputText(e.target.value)}
-              placeholder={`Message @${selectedContact.username}...`}
-              className="input-field py-3 flex-1" />
-            <button type="submit" disabled={!inputText.trim() || sending}
-              className="btn-primary p-3 aspect-square">
-              <Send size={18} />
-            </button>
-          </form>
+        {/* Messages */}
+        <div className="lg:col-span-2 ui-glass rounded-3xl p-6">
+          {selectedConversation ? (
+            <>
+              <div className="flex items-center gap-3 mb-6 pb-4 border-b">
+                <div className="w-12 h-12 bg-teal-100 rounded-full flex items-center justify-center">
+                  <User size={24} className="text-teal-600" />
+                </div>
+                <h2 className="text-xl font-bold">{selectedConversation.user.username}</h2>
+              </div>
+
+              <div className="space-y-4 mb-6 max-h-96 overflow-y-auto">
+                {selectedConversation.messages
+                  .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+                  .map((msg) => (
+                  <div
+                    key={msg.id}
+                    className={`flex ${msg.senderId === userId ? 'justify-end' : 'justify-start'}`}
+                  >
+                    <div
+                      className={`max-w-xs px-4 py-2 rounded-2xl ${
+                        msg.senderId === userId
+                          ? 'bg-gradient-to-r from-teal-500 to-cyan-500 text-white shadow-md shadow-teal-500/25'
+                          : 'bg-slate-100/90 text-slate-900'
+                      }`}
+                    >
+                      <p>{msg.content}</p>
+                      <p className={`text-xs mt-1 ${msg.senderId === userId ? 'text-teal-100' : 'text-slate-500'}`}>
+                        {new Date(msg.createdAt).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                  placeholder="Type a message..."
+                  className="flex-1 px-4 py-3 border border-slate-300 bg-white/90 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none"
+                />
+                <button
+                  onClick={handleSendMessage}
+                  disabled={!newMessage.trim()}
+                  className="px-6 py-3 bg-gradient-to-r from-teal-500 to-cyan-500 text-white rounded-xl hover:shadow-lg hover:shadow-teal-500/25 transition disabled:opacity-50"
+                >
+                  <Send size={20} />
+                </button>
+              </div>
+            </>
+          ) : (
+            <div className="flex flex-col items-center justify-center h-64 text-center">
+              <MessageSquare size={48} className="text-slate-300 mb-4" />
+              <p className="text-slate-500">Select a conversation to view messages</p>
+            </div>
+          )}
         </div>
-      ) : (
-        <div className="flex-1 flex flex-col items-center justify-center text-slate-400">
-          <div className="w-20 h-20 bg-slate-100 rounded-3xl flex items-center justify-center mb-5">
-            <MessageSquare size={36} />
-          </div>
-          <h3 className="text-lg font-extrabold text-slate-900 mb-1">Your Messages</h3>
-          <p className="text-sm text-slate-500">Select a conversation to get started</p>
-        </div>
-      )}
+      </div>
     </div>
   );
 };
