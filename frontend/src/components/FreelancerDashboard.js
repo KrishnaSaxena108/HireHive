@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { gql } from '@apollo/client';
 import { useQuery, useMutation } from '@apollo/client/react/index.js';
-import { DollarSign, Briefcase, FileText, Bell, CheckCircle, Clock, Upload, Loader } from 'lucide-react';
+import { DollarSign, Briefcase, FileText, Bell, CheckCircle, Clock, Upload, Loader, Star } from 'lucide-react';
+import { Button, Card, Badge, StatCard } from './ui';
 import { socket } from '../socket';
 
 // 1. Query to fetch only THIS freelancer's proposals and jobs
@@ -134,138 +135,184 @@ const FreelancerDashboard = () => {
 
   const unreadNotificationsCount = data?.notifications?.filter(n => !n.isRead).length || 0;
 
-  const stats = [
-    { 
-      label: 'Total Earnings', 
-      value: `$${activeProjects.reduce((acc, curr) => acc + (curr.bidAmount || 0), 0).toLocaleString()}`, 
-      icon: <DollarSign />, 
-      color: 'bg-green-500' 
-    },
-    { label: 'Active Projects', value: activeProjects.length, icon: <Briefcase />, color: 'bg-blue-500' },
-    { label: 'Pending Bids', value: pendingBids.length, icon: <FileText />, color: 'bg-orange-500' },
-    { label: 'Notifications', value: unreadNotificationsCount.toString(), icon: <Bell />, color: 'bg-purple-500' },
-  ];
-
-  // ... (rest of the return statement stays exactly the same)
-
   return (
-    <div className="p-8 min-h-screen">
-      <h2 className="text-3xl font-black text-slate-900 mb-8 tracking-tight">Freelancer Workspace</h2>
-      <p className="mb-4 text-lg">Your rating: <span className="font-bold">{averageRating.toFixed(1)} / 5</span></p>
-      
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-        {stats.map((stat, i) => (
-          <div key={i} className="ui-glass p-6 rounded-3xl border border-slate-100 flex items-center gap-4 hover:shadow-md transition-shadow">
-            <div className={`${stat.color} p-4 rounded-2xl text-white shadow-lg`}>{stat.icon}</div>
-            <div>
-              <p className="text-slate-500 text-sm font-medium">{stat.label}</p>
-              <p className="text-2xl font-bold text-slate-900">{stat.value}</p>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-10">
+        
+        {/* Header */}
+        <div className="mb-10">
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-2">Freelancer Workspace</h1>
+          <div className="flex items-center gap-2">
+            <span className="text-lg text-gray-600">Your rating:</span>
+            <div className="flex items-center gap-1">
+              {[...Array(5)].map((_, i) => (
+                <Star
+                  key={i}
+                  size={20}
+                  className={i < Math.round(averageRating) ? 'fill-amber-400 text-amber-400' : 'text-gray-300'}
+                />
+              ))}
+              <span className="ml-2 font-bold text-gray-900">{averageRating.toFixed(1)} / 5</span>
             </div>
           </div>
-        ))}
-      </div>
+        </div>
 
-      <div className="grid lg:grid-cols-2 gap-8">
-        {/* Active Projects List (#13) */}
-        <div className="ui-glass p-8 rounded-3xl border border-slate-100">
-          <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
-            <CheckCircle className="text-blue-500" size={20}/> Active Projects
-          </h3>
-          {activeProjects.length > 0 ? (
-            <div className="space-y-4">
-              {activeProjects.map((p) => (
-                <div key={p.id} className="p-4 bg-white/80 rounded-2xl border border-slate-100">
-                  <div className="flex justify-between items-start mb-3">
-                    <div>
-                      <h4 className="font-bold text-slate-900">{p.job.title}</h4>
-                      <p className="text-sm text-slate-500">Earnings: ${p.bidAmount}</p>
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+          <StatCard
+            icon={DollarSign}
+            label="Total Earnings"
+            value={`$${activeProjects.reduce((acc, curr) => acc + (curr.bidAmount || 0), 0).toLocaleString()}`}
+            backgroundColor="bg-emerald-50"
+            iconColor="text-emerald-600"
+          />
+          <StatCard
+            icon={Briefcase}
+            label="Active Projects"
+            value={activeProjects.length}
+            backgroundColor="bg-blue-50"
+            iconColor="text-blue-600"
+          />
+          <StatCard
+            icon={Clock}
+            label="Pending Bids"
+            value={pendingBids.length}
+            backgroundColor="bg-amber-50"
+            iconColor="text-amber-600"
+          />
+          <StatCard
+            icon={Bell}
+            label="Notifications"
+            value={unreadNotificationsCount}
+            backgroundColor="bg-purple-50"
+            iconColor="text-purple-600"
+          />
+        </div>
+
+        {/* Projects Grid */}
+        <div className="grid lg:grid-cols-2 gap-8">
+          
+          {/* Active Projects */}
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+              <CheckCircle size={28} className="text-blue-600" />
+              Active Projects
+            </h2>
+            {activeProjects.length > 0 ? (
+              <div className="space-y-4">
+                {activeProjects.map((project) => (
+                  <Card key={project.id} padding="md" className="border-l-4 border-l-blue-500">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1">
+                        <h4 className="font-bold text-gray-900 text-lg">{project.job.title}</h4>
+                        <p className="text-sm text-gray-600 mt-1">
+                          <DollarSign size={14} className="inline text-emerald-600" />
+                          {` Earnings: $${project.bidAmount}`}
+                        </p>
+                      </div>
+                      <Badge
+                        variant={project.job.status === 'COMPLETED' ? 'success' : 'primary'}
+                        size="sm"
+                      >
+                        {project.job.status === 'COMPLETED' ? 'Completed' : 'In Progress'}
+                      </Badge>
                     </div>
-                    <span className={`px-3 py-1 text-xs font-bold rounded-full ${
-                      p.job.status === 'COMPLETED' 
-                        ? 'bg-green-100 text-green-700' 
-                        : 'bg-blue-100 text-blue-700'
-                    }`}>
-                      {p.job.status === 'COMPLETED' ? 'COMPLETED' : 'IN PROGRESS'}
-                    </span>
-                  </div>
-                  
-                  {/* Show upload button for IN_PROGRESS jobs */}
-                  {p.job.status === 'IN_PROGRESS' && (
-                    <div className="mt-3 pt-3 border-t border-slate-200">
-                      <label className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-teal-500 to-cyan-500 text-white rounded-xl font-bold hover:shadow-lg hover:shadow-teal-500/25 transition cursor-pointer disabled:opacity-50">
-                        {uploadingJobId === p.job.id ? (
-                          <>
-                            <Loader size={18} className="animate-spin" />
-                            <span>Uploading...</span>
-                          </>
-                        ) : (
-                          <>
-                            <Upload size={18} />
-                            <span>Upload & Complete Project</span>
-                          </>
-                        )}
+
+                    {project.job.status === 'IN_PROGRESS' && (
+                      <label className="block mt-4 pt-4 border-t border-gray-200">
+                        <Button
+                          variant="primary"
+                          size="md"
+                          fullWidth
+                          disabled={uploadingJobId === project.job.id}
+                          className={uploadingJobId === project.job.id ? 'opacity-50' : ''}
+                        >
+                          {uploadingJobId === project.job.id ? (
+                            <>
+                              <Loader size={16} className="animate-spin" />
+                              Uploading...
+                            </>
+                          ) : (
+                            <>
+                              <Upload size={16} />
+                              Upload & Complete Project
+                            </>
+                          )}
+                        </Button>
                         <input
                           type="file"
                           className="hidden"
-                          disabled={uploadingJobId === p.job.id}
+                          disabled={uploadingJobId === project.job.id}
                           accept=".pdf,.doc,.docx,.zip,.rar,.png,.jpg,.jpeg,.webp"
                           onChange={(e) => {
                             const file = e.target.files?.[0];
                             if (file) {
                               if (window.confirm(`Upload "${file.name}" and mark this project as complete?`)) {
-                                handleFileUpload(p.job.id, file);
+                                handleFileUpload(project.job.id, file);
                               }
                             }
                             e.target.value = '';
                           }}
                         />
+                        <p className="text-xs text-gray-500 text-center mt-2">
+                          PDF, DOC, ZIP, or images accepted
+                        </p>
                       </label>
-                      <p className="text-xs text-slate-400 text-center mt-2">
-                        Upload your deliverable (PDF, DOC, ZIP, or images)
-                      </p>
+                    )}
+
+                    {project.job.status === 'COMPLETED' && project.job.deliverableUrl && (
+                      <div className="mt-4 pt-4 border-t border-gray-200">
+                        <a
+                          href={project.job.deliverableUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center justify-center gap-2 px-4 py-2 bg-emerald-100 text-emerald-700 rounded-lg font-semibold hover:bg-emerald-200 transition text-sm"
+                        >
+                          <FileText size={16} />
+                          View Submitted
+                        </a>
+                      </div>
+                    )}
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <Card className="text-center py-12 border-dashed border-2 border-gray-300">
+                <Briefcase size={40} className="mx-auto text-gray-400 mb-3" />
+                <p className="text-gray-600 font-medium">No active projects yet</p>
+                <p className="text-sm text-gray-500 mt-1">Start bidding on jobs to get started!</p>
+              </Card>
+            )}
+          </div>
+
+          {/* Pending Bids */}
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+              <Clock size={28} className="text-amber-600" />
+              Pending Bids
+            </h2>
+            {pendingBids.length > 0 ? (
+              <div className="space-y-3">
+                {pendingBids.map((bid) => (
+                  <Card key={bid.id} padding="md" className="border-l-4 border-l-amber-500 hover:shadow-md transition-shadow">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-bold text-gray-900">{bid.job.title}</h4>
+                        <p className="text-sm text-gray-600 mt-1">Bid amount: ${bid.bidAmount}</p>
+                      </div>
+                      <Clock size={20} className="text-amber-500 flex-shrink-0" />
                     </div>
-                  )}
-                  
-                  {/* Show deliverable link for COMPLETED jobs */}
-                  {p.job.status === 'COMPLETED' && p.job.deliverableUrl && (
-                    <div className="mt-3 pt-3 border-t border-slate-200">
-                      <a 
-                        href={p.job.deliverableUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center justify-center gap-2 px-4 py-2 bg-green-100 text-green-700 rounded-xl font-semibold hover:bg-green-200 transition text-sm"
-                      >
-                        <FileText size={16} />
-                        View Submitted: {p.job.deliverableFileName}
-                      </a>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-slate-400 text-center py-10">No active projects yet. Start bidding!</p>
-          )}
-        </div>
-        
-        {/* Pending Bids Section */}
-        <div className="ui-glass p-8 rounded-3xl border border-slate-100">
-          <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
-            <Clock className="text-orange-500" size={20}/> My Pending Bids
-          </h3>
-          {pendingBids.length > 0 ? (
-            <div className="space-y-4">
-               {pendingBids.map((p) => (
-                <div key={p.id} className="p-4 border-b border-slate-50 last:border-0 flex justify-between items-center">
-                  <span className="text-slate-700 font-medium">{p.job.title}</span>
-                  <span className="text-slate-400 text-sm">${p.bidAmount}</span>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-slate-400 text-center py-10">No pending bids.</p>
-          )}
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <Card className="text-center py-12 border-dashed border-2 border-gray-300">
+                <Clock size={40} className="mx-auto text-gray-400 mb-3" />
+                <p className="text-gray-600 font-medium">No pending bids</p>
+                <p className="text-sm text-gray-500 mt-1">Your proposals are awaiting client response</p>
+              </Card>
+            )}
+          </div>
         </div>
       </div>
     </div>

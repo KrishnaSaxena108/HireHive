@@ -61,117 +61,149 @@ const Navbar = () => {
   const profilePictureUrl = profileData?.me?.profilePictureUrl;
 
   return (
-    <nav className="sticky top-0 z-50 px-3 md:px-6 pt-3">
-      <div className="ui-glass rounded-2xl px-4 md:px-6 py-3 flex items-center justify-between gap-4">
-      <div className="flex items-center gap-4 md:gap-10">
-        {/* Logo */}
-        <Link to="/" className="flex items-center space-x-2 group">
-          <div className="bg-teal-500 p-2 rounded-lg text-white shadow-md shadow-teal-500/30 group-hover:scale-105 transition-transform">
-            <Rocket size={20} />
-          </div>
-          <span className="text-xl font-black text-slate-900 tracking-tight">HireHive</span>
-        </Link>
-
-        {/* Nav Links */}
-        <div className="hidden lg:flex items-center gap-7 text-slate-600 font-semibold text-sm">
-
-          {userRole === 'CLIENT' ? (
-            <Link to="/client-dashboard" className="hover:text-teal-600 hover:-translate-y-0.5">Dashboard</Link>
-          ) : (
-            <Link to="/freelancer-dashboard" className="hover:text-teal-600 hover:-translate-y-0.5">Dashboard</Link>
-          )}
-
-          {userRole === 'CLIENT' ? (
-            <Link to="/freelancers" className="hover:text-teal-600 hover:-translate-y-0.5">Find Freelancers</Link>
-          ) : (
-            <Link to="/browse" className="hover:text-teal-600 hover:-translate-y-0.5">Find Work</Link>
-          )}
-
-          <Link to="/about" className="hover:text-teal-600 text-slate-500 hover:-translate-y-0.5">About Us</Link>
-          <Link to="/contact" className="hover:text-teal-600 text-slate-500 hover:-translate-y-0.5">Contact Us</Link>
-        </div>
-      </div>
-
-      {/* Right Side Actions */}
-      <div className="flex items-center gap-3 md:gap-5">
-        {userId && (
-          <>
-            <Link to="/messages" className="hidden md:flex items-center space-x-2 text-slate-600 hover:text-teal-600 font-semibold text-sm px-3 py-1.5 rounded-lg hover:bg-teal-50">
-              <MessageSquare size={18} />
-              <span>Messages</span>
-            </Link>
-            <div className="flex items-center text-slate-600 hover:text-teal-600">
-              <NotificationBell />
-            </div>
-          </>
-        )}
-        {!userId ? (
-          <>
-            <Link to="/login" className="text-slate-600 hover:text-teal-600 font-semibold text-sm px-3 py-1.5 rounded-lg hover:bg-teal-50">
-              Login
-            </Link>
-            <Link to="/signup" className="bg-gradient-to-r from-teal-500 to-cyan-500 text-white px-5 py-2.5 rounded-xl font-bold hover:shadow-lg hover:shadow-teal-500/30 text-sm">
-              Join
-            </Link>
-          </>
-        ) : (
-          <button
-            onClick={handleLogout}
-            className="hidden md:flex items-center space-x-2 text-slate-600 hover:text-teal-600 font-semibold text-sm px-3 py-1.5 rounded-lg hover:bg-teal-50"
-          >
-            <LogOut size={18} />
-            <span>Logout</span>
-          </button>
-        )}
-        {userId && (
-          <div className="relative">
-            <button
-              onClick={() => setShowProfileMenu(!showProfileMenu)}
-              className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden border-2 border-white/70 hover:border-teal-400 shadow-sm hover:shadow-md cursor-pointer"
-            >
-              {profilePictureUrl ? (
-                <img 
-                  src={`http://localhost:4000${profilePictureUrl}`} 
-                  alt="Profile" 
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full bg-slate-100 flex items-center justify-center text-slate-400">
-                  <User size={20} />
-                </div>
-              )}
-            </button>
-            
-            {/* Profile Dropdown Menu */}
-            {showProfileMenu && (
-              <div className="absolute right-0 mt-2 w-52 bg-white/90 backdrop-blur-lg rounded-xl shadow-xl border border-slate-200 py-2 z-50">
-                <div className="px-4 py-2 border-b border-slate-100">
-                  <p className="font-bold text-slate-900 text-sm">{profileData?.me?.username || 'User'}</p>
-                  <p className="text-xs text-slate-500 capitalize">{userRole?.toLowerCase()}</p>
-                </div>
-                <Link 
-                  to="/create-profile" 
-                  onClick={() => setShowProfileMenu(false)}
-                  className="flex items-center gap-2 px-4 py-2 text-slate-600 hover:bg-teal-50 hover:text-teal-700 text-sm"
-                >
-                  <Settings size={16} />
-                  Edit Profile
-                </Link>
-                <button
-                  onClick={() => {
-                    setShowProfileMenu(false);
-                    handleLogout();
-                  }}
-                  className="w-full text-left flex items-center gap-2 px-4 py-2 text-slate-600 hover:bg-rose-50 hover:text-rose-600 text-sm"
-                >
-                  <LogOut size={16} />
-                  Logout
-                </button>
+    <nav className="sticky top-0 z-50 bg-white shadow-md border-b border-gray-100">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 py-4">
+        <div className="flex items-center justify-between">
+          
+          {/* Left: Logo and Navigation Links */}
+          <div className="flex items-center gap-8">
+            {/* Logo */}
+            <Link to="/" className="flex items-center gap-2 group flex-shrink-0">
+              <div className="bg-gradient-to-br from-blue-600 to-emerald-600 p-2.5 rounded-xl text-white shadow-md group-hover:scale-110 transition-transform">
+                <Rocket size={22} />
               </div>
+              <span className="text-2xl font-black text-gray-900 tracking-tight hidden sm:inline">HireHive</span>
+            </Link>
+
+            {/* Nav Links - Desktop */}
+            <div className="hidden lg:flex items-center gap-8">
+              {userRole === 'CLIENT' ? (
+                <Link to="/client-dashboard" className="text-gray-600 font-semibold text-sm hover:text-blue-600 transition-colors border-b-2 border-transparent hover:border-blue-600">
+                  Dashboard
+                </Link>
+              ) : userRole === 'FREELANCER' ? (
+                <Link to="/freelancer-dashboard" className="text-gray-600 font-semibold text-sm hover:text-blue-600 transition-colors border-b-2 border-transparent hover:border-blue-600">
+                  Dashboard
+                </Link>
+              ) : null}
+
+              {userRole === 'CLIENT' ? (
+                <Link to="/freelancers" className="text-gray-600 font-semibold text-sm hover:text-blue-600 transition-colors border-b-2 border-transparent hover:border-blue-600">
+                  Find Freelancers
+                </Link>
+              ) : userRole === 'FREELANCER' ? (
+                <Link to="/browse" className="text-gray-600 font-semibold text-sm hover:text-blue-600 transition-colors border-b-2 border-transparent hover:border-blue-600">
+                  Find Work
+                </Link>
+              ) : null}
+
+              <Link to="/about" className="text-gray-600 font-semibold text-sm hover:text-blue-600 transition-colors border-b-2 border-transparent hover:border-blue-600">
+                About Us
+              </Link>
+              <Link to="/contact" className="text-gray-600 font-semibold text-sm hover:text-blue-600 transition-colors border-b-2 border-transparent hover:border-blue-600">
+                Contact
+              </Link>
+            </div>
+          </div>
+
+          {/* Right Side Actions */}
+          <div className="flex items-center gap-4 md:gap-6">
+            {userId && (
+              <>
+                {/* Messages Link - Desktop */}
+                <Link 
+                  to="/messages" 
+                  className="hidden md:flex items-center gap-2 text-gray-600 hover:text-blue-600 font-semibold text-sm px-3 py-2 rounded-lg hover:bg-blue-50 transition-colors"
+                >
+                  <MessageSquare size={18} />
+                  <span>Messages</span>
+                </Link>
+                
+                {/* Notifications */}
+                <div className="flex items-center text-gray-600">
+                  <NotificationBell />
+                </div>
+              </>
+            )}
+            
+            {!userId ? (
+              <>
+                {/* Login/Signup Buttons */}
+                <Link 
+                  to="/login" 
+                  className="text-gray-600 hover:text-blue-600 font-semibold text-sm px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+                >
+                  Login
+                </Link>
+                <Link 
+                  to="/signup" 
+                  className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-2.5 rounded-xl font-bold hover:shadow-lg hover:shadow-blue-500/30 text-sm transition-all"
+                >
+                  Join
+                </Link>
+              </>
+            ) : (
+              <>
+                {/* Logout Button - Desktop */}
+                <button
+                  onClick={handleLogout}
+                  className="hidden md:flex items-center gap-2 text-gray-600 hover:text-red-600 font-semibold text-sm px-3 py-2 rounded-lg hover:bg-red-50 transition-colors"
+                >
+                  <LogOut size={18} />
+                  <span>Logout</span>
+                </button>
+
+                {/* Profile Avatar and Dropdown */}
+                <div className="relative">
+                  <button
+                    onClick={() => setShowProfileMenu(!showProfileMenu)}
+                    className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden border-2 border-gray-300 hover:border-blue-500 shadow-sm hover:shadow-md transition-all"
+                  >
+                    {profilePictureUrl ? (
+                      <img 
+                        src={`http://localhost:4000${profilePictureUrl}`} 
+                        alt="Profile" 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-blue-100 flex items-center justify-center text-blue-600">
+                        <User size={20} />
+                      </div>
+                    )}
+                  </button>
+                  
+                  {/* Profile Dropdown Menu */}
+                  {showProfileMenu && (
+                    <div className="absolute right-0 mt-3 w-56 bg-white shadow-xl rounded-xl border border-gray-200 py-2 z-50">
+                      <div className="px-4 py-3 border-b border-gray-100">
+                        <p className="font-bold text-gray-900 text-sm">{profileData?.me?.username || 'User'}</p>
+                        <p className="text-xs text-gray-500 capitalize">{userRole?.toLowerCase()}</p>
+                      </div>
+                      <Link 
+                        to="/create-profile" 
+                        onClick={() => setShowProfileMenu(false)}
+                        className="flex items-center gap-2 px-4 py-2.5 text-gray-600 hover:bg-blue-50 hover:text-blue-700 text-sm transition-colors"
+                      >
+                        <Settings size={16} />
+                        Edit Profile
+                      </Link>
+                      <button
+                        onClick={() => {
+                          setShowProfileMenu(false);
+                          handleLogout();
+                        }}
+                        className="w-full text-left flex items-center gap-2 px-4 py-2.5 text-gray-600 hover:bg-red-50 hover:text-red-600 text-sm transition-colors"
+                      >
+                        <LogOut size={16} />
+                        Logout
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </>
             )}
           </div>
-        )}
-      </div>
+        </div>
       </div>
     </nav>
   );

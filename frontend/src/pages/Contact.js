@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Mail, Phone, MapPin, Send, ChevronDown } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, ChevronDown, MessageCircle, Clock } from 'lucide-react';
 import { gql } from '@apollo/client';
 import { useMutation } from '@apollo/client/react/index.js';
+import { Button, Card, Input, SectionHeading } from '../components/ui';
 
 const SUBMIT_CONTACT_FORM = gql`
   mutation SubmitContactForm($name: String!, $email: String!, $message: String!) {
@@ -14,22 +15,64 @@ const SUBMIT_CONTACT_FORM = gql`
 const Contact = () => {
   const [status, setStatus] = useState('');
   const [expandedFaq, setExpandedFaq] = useState(null);
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [subject, setSubject] = useState('General Inquiry');
-  const [message, setMessage] = useState('');
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    subject: 'General Inquiry',
+    message: ''
+  });
 
-  const [submitContactForm] = useMutation(SUBMIT_CONTACT_FORM, {
-    onCompleted: () => setStatus('success'),
-    onError: () => setStatus('error')
+  const [submitContactForm, { loading: isSubmitting }] = useMutation(SUBMIT_CONTACT_FORM, {
+    onCompleted: () => {
+      setStatus('success');
+      setFormData({ name: '', email: '', subject: 'General Inquiry', message: '' });
+      setTimeout(() => setStatus(''), 5000);
+    },
+    onError: () => {
+      setStatus('error');
+      setTimeout(() => setStatus(''), 5000);
+    }
   });
 
   const handleSubmit = (e) => {
     e.preventDefault();
     setStatus('sending');
-    const fullMessage = `[${subject}] ${message}`;
-    submitContactForm({ variables: { name, email, message: fullMessage } });
+    const fullMessage = `[${formData.subject}] ${formData.message}`;
+    submitContactForm({ 
+      variables: { 
+        name: formData.name, 
+        email: formData.email, 
+        message: fullMessage 
+      } 
+    });
   };
+
+  const contactMethods = [
+    {
+      icon: Mail,
+      title: 'Email us',
+      value: 'support@hirehive.com',
+      description: 'We respond within 24 hours',
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-50'
+    },
+    {
+      icon: Phone,
+      title: 'Call us',
+      value: '+1 (555) 000-HIRE',
+      description: 'Available Mon-Fri 9AM-6PM EST',
+      color: 'text-emerald-600',
+      bgColor: 'bg-emerald-50'
+    },
+    {
+      icon: MapPin,
+      title: 'Visit us',
+      value: '123 Tech Avenue, San Francisco, CA',
+      description: 'Our headquarters',
+      color: 'text-purple-600',
+      bgColor: 'bg-purple-50'
+    },
+  ];
 
   const faqs = [
     {
@@ -59,95 +102,167 @@ const Contact = () => {
   ];
 
   return (
-    <div className="min-h-screen py-16 px-4 md:px-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Contact Section */}
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 py-12 md:py-16">
+        
+        {/* Intro Section */}
+        <div className="text-center mb-16">
+          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-4">Get in Touch</h1>
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            Have questions? We're here to help you succeed on HireHive. Reach out to our support team anytime.
+          </p>
+        </div>
+
+        {/* Contact Methods and Form  */}
         <div className="grid lg:grid-cols-3 gap-12 mb-20">
           
           {/* Contact Info Column */}
-          <div className="lg:col-span-1 space-y-8">
-            <div>
-              <h1 className="text-4xl font-black text-slate-900 mb-4">Get in touch.</h1>
-              <p className="text-slate-600">Have questions about our platform? We're here to help you 24/7.</p>
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-8">Contact Information</h2>
+            <div className="space-y-6">
+              {contactMethods.map((method, idx) => {
+                const Icon = method.icon;
+                return (
+                  <Card key={idx} padding="md" className={method.bgColor}>
+                    <Icon size={28} className={`${method.color} mb-3`} />
+                    <h3 className="font-bold text-gray-900 text-lg mb-1">{method.title}</h3>
+                    <p className="text-gray-700 font-semibold mb-1">{method.value}</p>
+                    <p className="text-sm text-gray-600">{method.description}</p>
+                  </Card>
+                );
+              })}
             </div>
 
-            <div className="space-y-6">
-              <div className="flex items-start space-x-4">
-                <div className="ui-glass p-3 rounded-xl text-teal-600"><Mail /></div>
-                <div><p className="font-bold">Email us</p><p className="text-slate-500">support@hirehive.com</p></div>
-              </div>
-              <div className="flex items-start space-x-4">
-                <div className="ui-glass p-3 rounded-xl text-teal-600"><Phone /></div>
-                <div><p className="font-bold">Call us</p><p className="text-slate-500">+1 (555) 000-HIRE</p></div>
-              </div>
-              <div className="flex items-start space-x-4">
-                <div className="ui-glass p-3 rounded-xl text-teal-600"><MapPin /></div>
-                <div><p className="font-bold">Visit us</p><p className="text-slate-500">123 Tech Avenue, San Francisco, CA</p></div>
-              </div>
-            </div>
+            {/* Quick Response Info */}
+            <Card padding="md" className="mt-8 border-l-4 border-l-blue-600 bg-blue-50">
+              <Clock size={24} className="text-blue-600 mb-2" />
+              <p className="text-sm text-gray-700 font-semibold">
+                <strong>Average Response Time:</strong> 2-4 hours during business hours
+              </p>
+            </Card>
           </div>
 
           {/* Contact Form Column */}
-          <div className="lg:col-span-2 ui-glass rounded-3xl p-10">
-            <form onSubmit={handleSubmit} className="grid md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700">Full Name</label>
-                <input type="text" value={name} onChange={(e) => setName(e.target.value)} required className="w-full p-4 bg-white/90 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none" />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700">Email Address</label>
-                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="w-full p-4 bg-white/90 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none" />
-              </div>
-              <div className="md:col-span-2 space-y-2">
-                <label className="text-sm font-bold text-slate-700">Subject</label>
-                <select value={subject} onChange={(e) => setSubject(e.target.value)} className="w-full p-4 bg-white/90 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none">
-                  <option>General Inquiry</option>
-                  <option>Billing Question</option>
-                  <option>Report an Issue</option>
-                </select>
-              </div>
-              <div className="md:col-span-2 space-y-2">
-                <label className="text-sm font-bold text-slate-700">Message</label>
-                <textarea rows="5" value={message} onChange={(e) => setMessage(e.target.value)} required className="w-full p-4 bg-white/90 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none"></textarea>
-              </div>
-              
-              <button 
-                disabled={status === 'sending'}
-                className="md:col-span-2 bg-gradient-to-r from-teal-500 to-cyan-500 text-white font-bold py-4 rounded-xl flex items-center justify-center space-x-2 hover:shadow-xl hover:shadow-teal-500/30 transition"
-              >
-                {status === 'success' ? 'Message Sent!' : status === 'sending' ? 'Sending...' : status === 'error' ? 'Error Sending' : (
-                  <><Send size={20} /> <span>Send Message</span></>
+          <div className="lg:col-span-2">
+            <Card padding="lg" shadow="lg">
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid md:grid-cols-2 gap-6">
+                  <Input
+                    type="text"
+                    label="Full Name"
+                    placeholder="John Doe"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    required
+                  />
+                  <Input
+                    type="email"
+                    label="Email Address"
+                    placeholder="your@email.com"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Subject</label>
+                  <select 
+                    value={formData.subject} 
+                    onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                    className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-blue-600 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
+                  >
+                    <option>General Inquiry</option>
+                    <option>Billing Question</option>
+                    <option>Technical Support</option>
+                    <option>Report an Issue</option>
+                    <option>Feature Request</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Message</label>
+                  <textarea 
+                    rows="6" 
+                    placeholder="Tell us what's on your mind..." 
+                    value={formData.message}
+                    onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                    required
+                    className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-blue-600 focus:ring-2 focus:ring-blue-100 outline-none transition-all resize-none"
+                  ></textarea>
+                </div>
+
+                {/* Status Messages */}
+                {status === 'success' && (
+                  <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-700 font-semibold flex items-center gap-2">
+                    <MessageCircle size={20} />
+                    Your message has been sent successfully!
+                  </div>
                 )}
-              </button>
-            </form>
+                {status === 'error' && (
+                  <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 font-semibold">
+                    Oops! Something went wrong. Please try again.
+                  </div>
+                )}
+
+                <Button 
+                  variant="primary"
+                  size="lg"
+                  fullWidth
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? 'Sending...' : 'Send Message'}
+                  {!isSubmitting && <Send size={20} />}
+                </Button>
+              </form>
+            </Card>
           </div>
         </div>
 
         {/* FAQ Section */}
-        <div className="max-w-3xl mx-auto">
-          <h2 className="text-3xl font-black text-slate-900 mb-12 text-center">Frequently Asked Questions</h2>
-          <div className="space-y-4">
-            {faqs.map((faq, i) => (
-              <div key={i} className="ui-glass rounded-2xl overflow-hidden">
-                <button
-                  onClick={() => setExpandedFaq(expandedFaq === i ? null : i)}
-                  className="w-full p-6 flex justify-between items-center hover:bg-slate-50 transition-colors"
-                >
-                  <h3 className="text-lg font-bold text-slate-900 text-left">{faq.question}</h3>
+        <section>
+          <SectionHeading 
+            title="Frequently Asked Questions"
+            subtitle="Answers to your common questions"
+          />
+          <div className="max-w-3xl mx-auto space-y-4">
+            {faqs.map((faq, idx) => (
+              <Card 
+                key={idx}
+                padding="md"
+                className="cursor-pointer hover:shadow-md transition-shadow"
+                onClick={() => setExpandedFaq(expandedFaq === idx ? null : idx)}
+              >
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-bold text-gray-900">{faq.question}</h3>
                   <ChevronDown
                     size={24}
-                    className={`text-teal-600 transition-transform ${expandedFaq === i ? 'rotate-180' : ''}`}
+                    className={`text-blue-600 transition-transform flex-shrink-0 ${
+                      expandedFaq === idx ? 'rotate-180' : ''
+                    }`}
                   />
-                </button>
-                {expandedFaq === i && (
-                  <div className="px-6 pb-6 border-t border-slate-200">
-                    <p className="text-slate-600 leading-relaxed">{faq.answer}</p>
+                </div>
+
+                {expandedFaq === idx && (
+                  <div className="mt-4 pt-4 border-t border-gray-200 text-gray-700 leading-relaxed">
+                    {faq.answer}
                   </div>
                 )}
-              </div>
+              </Card>
             ))}
           </div>
-        </div>
+
+          {/* Still Need Help */}
+          <div className="text-center mt-12">
+            <Card padding="lg" className="bg-gradient-to-r from-blue-600 to-emerald-600 text-white text-center">
+              <h3 className="text-2xl font-bold mb-2">Still need help?</h3>
+              <p className="opacity-95 mb-4">Can't find the answer you're looking for? Our support team is standing by.</p>
+              <Button variant="secondary" size="md">
+                Contact Support Team
+              </Button>
+            </Card>
+          </div>
+        </section>
       </div>
     </div>
   );

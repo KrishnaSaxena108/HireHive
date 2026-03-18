@@ -11,8 +11,10 @@ import {
   Clock,
   DollarSign,
   Download,
-  FileText
+  FileText,
+  Star
 } from 'lucide-react';
+import { Button, Card, Badge, StatCard } from './ui';
 
 // --- 1. DEFINE THE QUERY ---
 const GET_CLIENT_JOBS = gql`
@@ -73,224 +75,267 @@ const ClientDashboard = () => {
     refetchQueries: [{ query: GET_CLIENT_JOBS }] 
   });
 
-  if (loading) return <div className="p-10 text-center animate-pulse text-teal-600 font-bold">Loading Your Workspace...</div>;
-  if (error) return <div className="p-10 text-center text-red-500 bg-red-50 rounded-xl">Error: {error.message}</div>;
+  if (loading) return (
+    <div className="p-10 text-center">
+      <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <p className="text-gray-600 mt-4 font-medium">Loading your workspace...</p>
+    </div>
+  );
+  if (error) return (
+    <div className="max-w-7xl mx-auto p-8">
+      <Card className="bg-red-50 border-red-200">
+        <p className="text-red-700 font-semibold">Error: {error.message}</p>
+      </Card>
+    </div>
+  );
 
   // Filter jobs to only show those belonging to the current client
   const myJobs = data?.jobs?.filter(job => job.client && job.client.id === userId) || [];
   
-  // Calculate some stats for the hero section
+  // Calculate stats
   const activeJobs = myJobs.filter(j => j.status === 'OPEN').length;
   const inProgressJobs = myJobs.filter(j => j.status === 'IN_PROGRESS').length;
+  const completedJobs = myJobs.filter(j => j.status === 'COMPLETED').length;
   const totalProposals = myJobs.reduce((acc, job) => acc + (job.proposals?.length || 0), 0);
 
   return (
-    <div className="p-4 md:p-8 min-h-screen">
-      
-      {/* --- HERO SECTION --- */}
-      <div className="bg-gradient-to-r from-teal-500 to-cyan-500 rounded-3xl p-8 md:p-12 mb-10 text-white shadow-xl flex flex-col md:flex-row items-center justify-between">
-        <div>
-          <h2 className="text-4xl font-black mb-2">Client Workspace</h2>
-          <p className="text-teal-50 text-lg mb-6">Manage your projects, review bids, and hire top talent.</p>
-          
-          <div className="flex gap-6 text-sm font-medium">
-            <div className="bg-white/10 px-4 py-2 rounded-xl backdrop-blur-sm">
-              <span className="block text-2xl font-black">{activeJobs}</span> Open Projects
-            </div>
-            <div className="bg-white/10 px-4 py-2 rounded-xl backdrop-blur-sm">
-              <span className="block text-2xl font-black">{inProgressJobs}</span> In Progress
-            </div>
-            <div className="bg-white/10 px-4 py-2 rounded-xl backdrop-blur-sm">
-              <span className="block text-2xl font-black">{myJobs.filter(j => j.status === 'COMPLETED').length}</span> Completed
-            </div>
-            <div className="bg-white/10 px-4 py-2 rounded-xl backdrop-blur-sm">
-              <span className="block text-2xl font-black">{totalProposals}</span> Total Bids
-            </div>
-          </div>
-        </div>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-10">
         
-        <Link 
-          to="/post-job" 
-          className="mt-8 md:mt-0 bg-white text-teal-700 font-bold px-8 py-4 rounded-2xl shadow-lg hover:bg-slate-50 hover:scale-105 transition-all flex items-center gap-3 text-lg"
-        >
-          <PlusCircle size={24} /> Post New Project
-        </Link>
-      </div>
-
-      {/* --- JOB LISTINGS --- */}
-      <h3 className="text-2xl font-black text-slate-800 mb-6 flex items-center gap-2">
-        <Briefcase className="text-teal-500" /> My Projects
-      </h3>
-
-      {myJobs.length === 0 ? (
-        <div className="bg-white p-12 rounded-3xl text-center border border-slate-200 shadow-sm">
-          <div className="bg-slate-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Briefcase size={32} className="text-slate-400" />
+        {/* Header with Title and CTA */}
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-12">
+          <div>
+            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-2">Client Workspace</h1>
+            <p className="text-lg text-gray-600">Manage your projects, review proposals, and hire top talent</p>
           </div>
-          <h4 className="text-xl font-bold text-slate-800 mb-2">No projects yet</h4>
-          <p className="text-slate-500 mb-6 max-w-md mx-auto">You haven't posted any jobs. Create your first project to start receiving bids from talented freelancers.</p>
-          <Link to="/post-job" className="inline-flex items-center gap-2 bg-gradient-to-r from-teal-500 to-cyan-500 text-white px-6 py-3 rounded-xl font-bold hover:shadow-lg hover:shadow-teal-500/25 transition">
-            <PlusCircle size={20} /> Post a Job
+          <Link to="/post-job">
+            <Button variant="primary" size="lg" className="flex items-center gap-2">
+              <PlusCircle size={20} />
+              Post New Project
+            </Button>
           </Link>
         </div>
-      ) : (
-        <div className="space-y-8">
-          {myJobs.map((job) => {
-            const acceptedProposal = getAcceptedProposal(job);
-            return (
-            <div key={job.id} className="ui-glass rounded-3xl border border-slate-200 overflow-hidden transition-all hover:shadow-lg">
-              
-              {/* Job Status Bar */}
-              <div className={`h-2 w-full ${
-                job.status === 'OPEN' ? 'bg-green-400' : 
-                job.status === 'IN_PROGRESS' ? 'bg-blue-500' : 
-                job.status === 'COMPLETED' ? 'bg-purple-500' : 'bg-slate-400'
-              }`}></div>
-              
-              {/* Job Header Info */}
-              <div className="p-6 md:px-8 md:pt-8 border-b border-slate-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div>
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className={`px-3 py-1 text-xs font-black rounded-full uppercase tracking-wide ${
-                      job.status === 'OPEN' ? 'bg-green-100 text-green-700' : 
-                      job.status === 'IN_PROGRESS' ? 'bg-blue-100 text-blue-700' : 
-                      job.status === 'COMPLETED' ? 'bg-purple-100 text-purple-700' : 'bg-slate-100 text-slate-700'
-                    }`}>
-                      {job.status.replace('_', ' ')}
-                    </span>
-                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wide bg-slate-100 px-3 py-1 rounded-full">{job.category}</span>
-                  </div>
-                  <h3 className="text-2xl font-black text-slate-900 group-hover:text-teal-600 transition-colors">{job.title}</h3>
-                </div>
-                
-                <div className="flex items-center gap-2 bg-teal-50 px-4 py-2 rounded-xl text-teal-700 font-bold border border-teal-100">
-                  <DollarSign size={18} />
-                  <span>{job.budget.toLocaleString()}</span>
-                </div>
-              </div>
 
-              {/* Client Review CTA for completed projects */}
-              {job.status === 'COMPLETED' && acceptedProposal?.freelancer?.id && (
-                <div className="px-6 md:px-8 py-4 bg-amber-50 border-b border-amber-100 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
-                  <p className="text-sm text-amber-800 font-semibold">
-                    Project finished with @{acceptedProposal.freelancer.username}. Leave a review to help the freelancer community.
-                  </p>
-                  <button
-                    onClick={() => {
-                      if (!acceptedProposal?.freelancer?.id) return;
-                      navigate(
-                        `/submit-review?jobId=${job.id}&revieweeId=${acceptedProposal.freelancer.id}&username=${encodeURIComponent(acceptedProposal.freelancer.username || '')}`
-                      );
-                    }}
-                    className="px-5 py-2.5 bg-amber-600 text-white rounded-xl font-bold hover:bg-amber-700 transition-all"
-                  >
-                    Give Review
-                  </button>
-                </div>
-              )}
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+          <StatCard
+            icon={Briefcase}
+            label="Open Projects"
+            value={activeJobs}
+            backgroundColor="bg-blue-50"
+            iconColor="text-blue-600"
+          />
+          <StatCard
+            icon={Clock}
+            label="In Progress"
+            value={inProgressJobs}
+            backgroundColor="bg-emerald-50"
+            iconColor="text-emerald-600"
+          />
+          <StatCard
+            icon={CheckCircle}
+            label="Completed"
+            value={completedJobs}
+            backgroundColor="bg-purple-50"
+            iconColor="text-purple-600"
+          />
+          <StatCard
+            icon={Users}
+            label="Total Proposals"
+            value={totalProposals}
+            backgroundColor="bg-amber-50"
+            iconColor="text-amber-600"
+          />
+        </div>
 
-              {/* Deliverable Section for COMPLETED jobs */}
-              {job.status === 'COMPLETED' && job.deliverableUrl && (
-                <div className="p-6 md:px-8 bg-purple-50 border-b border-purple-100">
-                  <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                      <div className="bg-purple-100 p-3 rounded-xl">
-                        <FileText className="text-purple-600" size={24} />
+        {/* Projects Section */}
+        {myJobs.length === 0 ? (
+          <Card className="text-center py-16">
+            <div className="bg-gray-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Briefcase size={40} className="text-gray-400" />
+            </div>
+            <h3 className="text-2xl font-bold text-gray-900 mb-2">No projects yet</h3>
+            <p className="text-gray-600 mb-8 max-w-md mx-auto">Create your first project to start receiving proposals from talented freelancers</p>
+            <Link to="/post-job">
+              <Button variant="primary" size="lg">
+                <PlusCircle size={20} />
+                Post Your First Project
+              </Button>
+            </Link>
+          </Card>
+        ) : (
+          <div className="space-y-6">
+            {myJobs.map((job) => {
+              const acceptedProposal = getAcceptedProposal(job);
+              const statusConfig = {
+                OPEN: { color: 'success', bgColor: 'bg-green-50', borderColor: 'border-l-4 border-green-500' },
+                IN_PROGRESS: { color: 'warning', bgColor: 'bg-blue-50', borderColor: 'border-l-4 border-blue-500' },
+                COMPLETED: { color: 'neutral', bgColor: 'bg-purple-50', borderColor: 'border-l-4 border-purple-500' },
+              };
+              const config = statusConfig[job.status] || statusConfig.OPEN;
+
+              return (
+                <Card
+                  key={job.id}
+                  className={`overflow-hidden border border-gray-200 ${config.borderColor}`}
+                  shadow="md"
+                  padding="lg"
+                >
+                  {/* Job Header */}
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6 pb-6 border-b border-gray-200">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Badge variant={config.color} size="sm">
+                          {job.status.replace(/_/g, ' ')}
+                        </Badge>
+                        {job.category && (
+                          <Badge variant="neutral" size="sm">
+                            {job.category}
+                          </Badge>
+                        )}
                       </div>
-                      <div>
-                        <h4 className="font-bold text-purple-900">Project Deliverable</h4>
-                        <p className="text-sm text-purple-600">{job.deliverableFileName}</p>
+                      <h3 className="text-2xl font-bold text-gray-900">{job.title}</h3>
+                    </div>
+                    <div className="flex items-center gap-2 bg-emerald-50 px-4 py-3 rounded-xl border border-emerald-200">
+                      <DollarSign size={20} className="text-emerald-600" />
+                      <span className="text-2xl font-bold text-emerald-600">${job.budget.toLocaleString()}</span>
+                    </div>
+                  </div>
+
+                  {/* Review Reminder */}
+                  {job.status === 'COMPLETED' && acceptedProposal?.freelancer?.id && (
+                    <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-3">
+                      <Star size={20} className="text-amber-600 mt-0.5 flex-shrink-0" />
+                      <div className="flex-1">
+                        <p className="font-semibold text-amber-900 text-sm mb-2">
+                          Complete the cycle by leaving a review
+                        </p>
+                        <p className="text-amber-700 text-sm mb-3">
+                          Help @{acceptedProposal.freelancer.username} get recognized for exceptional work
+                        </p>
+                        <Button
+                          size="sm"
+                          variant="primary"
+                          onClick={() => {
+                            navigate(
+                              `/submit-review?jobId=${job.id}&revieweeId=${acceptedProposal.freelancer.id}&username=${encodeURIComponent(acceptedProposal.freelancer.username || '')}`
+                            );
+                          }}
+                        >
+                          <Star size={16} />
+                          Leave Review
+                        </Button>
                       </div>
                     </div>
-                    <a
-                      href={job.deliverableUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-xl font-bold hover:bg-purple-700 transition-all shadow-lg hover:shadow-xl"
-                    >
-                      <Download size={18} />
-                      Download File
-                    </a>
-                  </div>
-                </div>
-              )}
+                  )}
 
-              {/* Proposals Section */}
-              <div className="p-6 md:p-8 bg-slate-50/50">
-                <h4 className="text-sm font-black text-slate-500 uppercase mb-4 flex items-center gap-2 tracking-wider">
-                  <Users size={16}/> Freelancer Bids ({job.proposals?.length || 0})
-                </h4>
-                
-                {(!job.proposals || job.proposals.length === 0) ? (
-                  <div className="text-center py-8 bg-white rounded-2xl border border-dashed border-slate-300">
-                    <Clock size={24} className="mx-auto text-slate-400 mb-2" />
-                    <p className="text-slate-500 text-sm">Waiting for proposals. Check back soon!</p>
-                  </div>
-                ) : (
-                  <div className="grid gap-4">
-                    {job.proposals.map((proposal) => (
-                      <div key={proposal.id} className={`bg-white p-5 rounded-2xl border transition-all flex flex-col md:flex-row justify-between gap-6 shadow-sm ${
-                        proposal.status === 'ACCEPTED' ? 'border-green-300 bg-green-50/30' : 'border-slate-200 hover:border-teal-300'
-                      }`}>
-                        
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="font-black text-lg text-slate-900 flex items-center gap-2">
-                              @{proposal.freelancer?.username || "Unknown Freelancer"}
-                              {proposal.status === 'ACCEPTED' && (
-                                <span className="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full flex items-center gap-1">
-                                  <CheckCircle size={12} /> Hired
-                                </span>
-                              )}
-                            </span>
-                            <span className="font-bold text-teal-600 bg-teal-50 px-3 py-1 rounded-lg text-sm border border-teal-100">
-                              Bid: ${proposal.bidAmount}
-                            </span>
-                          </div>
-                          
-                          <div className="bg-slate-50 p-4 rounded-xl text-slate-600 text-sm leading-relaxed border border-slate-100">
-                            <span className="font-bold text-xs text-slate-400 uppercase tracking-wider block mb-1">Cover Letter</span>
-                            {proposal.coverLetter}
-                          </div>
+                  {/* Deliverable Section */}
+                  {job.status === 'COMPLETED' && job.deliverableUrl && (
+                    <div className="mb-6 p-4 bg-purple-50 border border-purple-200 rounded-xl flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="bg-purple-100 p-2.5 rounded-lg">
+                          <FileText size={20} className="text-purple-600" />
                         </div>
-
-                        <div className="flex md:flex-col gap-3 justify-end items-end shrink-0 pt-2 md:pt-0">
-                          {/* Chat Button */}
-                          <button 
-                            onClick={() => navigate(`/messages?user=${proposal.freelancer?.id}&username=${encodeURIComponent(proposal.freelancer?.username || '')}`)}
-                            className="w-full justify-center md:w-auto flex items-center gap-2 px-5 py-2.5 bg-white border-2 border-slate-200 text-slate-600 rounded-xl hover:border-teal-600 hover:text-teal-600 font-bold transition group"
-                            title="Discuss with freelancer"
-                          >
-                            <MessageCircle size={18} className="group-hover:scale-110 transition-transform" />
-                            <span>Discuss</span>
-                          </button>
-                          
-                          {/* Hire Button */}
-                          {job.status === 'OPEN' && proposal.status === 'PENDING' && (
-                            <button 
-                              disabled={hiring}
-                              onClick={() => {
-                                if(window.confirm(`Are you sure you want to hire @${proposal.freelancer?.username}? This will close the job and reject other bids.`)) {
-                                  acceptProposal({ variables: { proposalId: proposal.id } });
-                                }
-                              }}
-                              className="w-full justify-center md:w-auto flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-teal-500 to-cyan-500 text-white rounded-xl font-bold hover:shadow-lg hover:shadow-teal-500/25 hover:-translate-y-0.5 transition-all disabled:opacity-50"
-                            >
-                              {hiring ? "Processing..." : "Hire Talent"}
-                            </button>
-                          )}
+                        <div>
+                          <h4 className="font-semibold text-purple-900">Deliverable</h4>
+                          <p className="text-sm text-purple-600">{job.deliverableFileName}</p>
                         </div>
-
                       </div>
-                    ))}
+                      <a
+                        href={job.deliverableUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors"
+                      >
+                        <Download size={16} />
+                        Download
+                      </a>
+                    </div>
+                  )}
+
+                  {/* Proposals Section */}
+                  <div>
+                    <h4 className="text-sm font-bold text-gray-600 uppercase tracking-wider mb-4 flex items-center gap-2">
+                      <Users size={16} />
+                      Proposals ({job.proposals?.length || 0})
+                    </h4>
+
+                    {!job.proposals || job.proposals.length === 0 ? (
+                      <div className="text-center py-12 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+                        <Clock size={32} className="mx-auto text-gray-400 mb-3" />
+                        <p className="text-gray-600 font-medium">Waiting for freelancers to submit proposals...</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {job.proposals.map((proposal) => (
+                          <div
+                            key={proposal.id}
+                            className={`p-4 rounded-lg border-2 transition-all ${
+                              proposal.status === 'ACCEPTED'
+                                ? 'bg-green-50 border-green-300'
+                                : 'bg-white border-gray-200 hover:border-blue-300'
+                            }`}
+                          >
+                            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-4">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <span className="font-bold text-lg text-gray-900">
+                                    @{proposal.freelancer?.username || 'Unknown'}
+                                  </span>
+                                  {proposal.status === 'ACCEPTED' && (
+                                    <Badge variant="success" size="sm">
+                                      <CheckCircle size={14} />
+                                      Hired
+                                    </Badge>
+                                  )}
+                                </div>
+                                <div className="p-3 bg-gray-50 rounded-lg text-gray-700 text-sm">
+                                  {proposal.coverLetter}
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 rounded-lg border border-blue-200 whitespace-nowrap">
+                                <DollarSign size={16} className="text-blue-600" />
+                                <span className="font-bold text-blue-600">${proposal.bidAmount}</span>
+                              </div>
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="flex flex-wrap gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => navigate(`/messages?user=${proposal.freelancer?.id}&username=${encodeURIComponent(proposal.freelancer?.username || '')}`)}
+                              >
+                                <MessageCircle size={16} />
+                                Discuss
+                              </Button>
+
+                              {job.status === 'OPEN' && proposal.status === 'PENDING' && (
+                                <Button
+                                  size="sm"
+                                  variant="primary"
+                                  disabled={hiring}
+                                  onClick={() => {
+                                    if (window.confirm(`Hire @${proposal.freelancer?.username}? This will close the job for other proposals.`)) {
+                                      acceptProposal({ variables: { proposalId: proposal.id } });
+                                    }
+                                  }}
+                                >
+                                  {hiring ? 'Processing...' : 'Hire'}
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            </div>
-            );
-          })}
-        </div>
-      )}
+                </Card>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { gql } from '@apollo/client';
 import { useQuery } from '@apollo/client/react/index.js';
-import { Link } from 'react-router-dom';
-import { Briefcase, DollarSign, Filter, Search, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
+import { Briefcase, Filter, Search, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Button, Input, Card, JobCard } from './ui';
 
 const SEARCH_JOBS = gql`
   query SearchJobs($keyword: String, $category: String, $minBudget: Float, $maxBudget: Float, $status: String) {
@@ -84,215 +84,226 @@ const AdvancedSearch = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-4 md:p-6">
-      {/* Search Bar */}
-      <div className="mb-8 ui-glass rounded-3xl p-4 md:p-6">
-        <div className="flex gap-4 mb-4">
-          <div className="flex-1 relative">
-            <Search className="absolute left-4 top-3.5 text-slate-400" size={20} />
-            <input
-              type="text"
-              placeholder="Search jobs by title or description..."
-              value={keyword}
-              onChange={(e) => setKeyword(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 border border-slate-300 bg-white/90 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none"
-            />
-          </div>
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-teal-500 to-cyan-500 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-teal-500/30 transition-all"
-          >
-            <Filter size={20} /> Filters
-            {activeFilters > 0 && (
-              <span className="ml-2 px-2 py-1 bg-yellow-500 text-xs rounded-full font-bold">{activeFilters}</span>
-            )}
-          </button>
-          {activeFilters > 0 && (
-            <button
-              onClick={clearFilters}
-              className="flex items-center gap-2 px-4 py-3 bg-slate-200 text-slate-700 rounded-lg font-semibold hover:bg-slate-300 transition-all"
-            >
-              <X size={18} /> Clear
-            </button>
-          )}
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-10">
+        
+        {/* Header */}
+        <div className="mb-12">
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-2">Find Work</h1>
+          <p className="text-lg text-gray-600">Browse and apply to hundreds of opportunities</p>
         </div>
 
-        {/* Filter Panel */}
-        {showFilters && (
-          <div className="bg-white/80 border border-slate-200 rounded-lg p-6 mb-2 grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Category Filter */}
-            <div>
-              <label className="block text-sm font-bold text-slate-700 mb-2">Category</label>
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none"
-              >
-                <option value="">All Categories</option>
-                {CATEGORIES.map(cat => (
-                  <option key={cat.value} value={cat.value}>{cat.label}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Min Budget */}
-            <div>
-              <label className="block text-sm font-bold text-slate-700 mb-2">Min Budget ($)</label>
-              <input
-                type="number"
-                placeholder="500"
-                value={minBudget}
-                onChange={(e) => setMinBudget(e.target.value)}
-                className="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none"
+        {/* Search and Filters Section */}
+        <Card className="mb-8 shadow-lg" padding="lg">
+          {/* Search Bar */}
+          <div className="flex gap-3 mb-6">
+            <div className="flex-1">
+              <Input
+                type="text"
+                placeholder="Search jobs by title or description..."
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+                icon={Search}
               />
             </div>
-
-            {/* Max Budget */}
-            <div>
-              <label className="block text-sm font-bold text-slate-700 mb-2">Max Budget ($)</label>
-              <input
-                type="number"
-                placeholder="10000"
-                value={maxBudget}
-                onChange={(e) => setMaxBudget(e.target.value)}
-                className="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none"
-              />
-            </div>
-
-            {/* Status Filter */}
-            <div>
-              <label className="block text-sm font-bold text-slate-700 mb-2">Status</label>
-              <select
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-                className="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none"
+            <Button
+              variant="primary"
+              size="md"
+              onClick={() => setShowFilters(!showFilters)}
+              className="flex items-center gap-2"
+            >
+              <Filter size={18} />
+              Filters
+              {activeFilters > 0 && (
+                <span className="ml-2 px-2 py-1 bg-amber-400 text-xs rounded-full font-bold">
+                  {activeFilters}
+                </span>
+              )}
+            </Button>
+            {activeFilters > 0 && (
+              <Button
+                variant="outline"
+                size="md"
+                onClick={clearFilters}
+                className="flex items-center gap-2"
               >
-                <option value="">All Status</option>
-                {STATUS_OPTIONS.map(opt => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                ))}
-              </select>
+                <X size={18} />
+                Clear
+              </Button>
+            )}
+          </div>
+
+          {/* Filter Panel */}
+          {showFilters && (
+            <div className="pt-6 border-t border-gray-200 grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {/* Category Filter */}
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">Category</label>
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-blue-600 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
+                >
+                  <option value="">All Categories</option>
+                  {CATEGORIES.map(cat => (
+                    <option key={cat.value} value={cat.value}>{cat.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Min Budget */}
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">Min Budget ($)</label>
+                <input
+                  type="number"
+                  placeholder="500"
+                  value={minBudget}
+                  onChange={(e) => setMinBudget(e.target.value)}
+                  className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-blue-600 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
+                />
+              </div>
+
+              {/* Max Budget */}
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">Max Budget ($)</label>
+                <input
+                  type="number"
+                  placeholder="10000"
+                  value={maxBudget}
+                  onChange={(e) => setMaxBudget(e.target.value)}
+                  className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-blue-600 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
+                />
+              </div>
+
+              {/* Status Filter */}
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">Status</label>
+                <select
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value)}
+                  className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-blue-600 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
+                >
+                  <option value="">All Status</option>
+                  {STATUS_OPTIONS.map(opt => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </select>
+              </div>
             </div>
+          )}
+        </Card>
+
+        {/* Results Count & Sort */}
+        <div className="mb-8 flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+          <div className="text-gray-700 font-semibold text-lg">
+            Found <span className="text-blue-600 font-bold">{sortedJobs.length}</span> job{sortedJobs.length !== 1 ? 's' : ''}
+          </div>
+          <div className="flex gap-4 items-center">
+            <label className="text-sm font-semibold text-gray-700">Sort by:</label>
+            <select
+              value={sortBy}
+              onChange={(e) => {
+                setSortBy(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="p-2 border-2 border-gray-200 rounded-lg focus:border-blue-600 focus:ring-2 focus:ring-blue-100 outline-none text-sm"
+            >
+              <option value="latest">Latest</option>
+              <option value="budget-high">Budget: High to Low</option>
+              <option value="budget-low">Budget: Low to High</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Loading State */}
+        {loading && (
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600"></div>
           </div>
         )}
-      </div>
 
-      {/* Results Count & Sort */}
-      <div className="mb-4 flex justify-between items-center">
-        <div className="text-slate-600 font-semibold">
-          Found <span className="text-teal-600">{sortedJobs.length}</span> job{sortedJobs.length !== 1 ? 's' : ''}
-        </div>
-        <div className="flex gap-4 items-center">
-          <label className="text-sm font-semibold text-slate-700">Sort by:</label>
-          <select
-            value={sortBy}
-            onChange={(e) => {
-              setSortBy(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none text-sm bg-white/90"
-          >
-            <option value="latest">Latest</option>
-            <option value="budget-high">Budget: High to Low</option>
-            <option value="budget-low">Budget: Low to High</option>
-          </select>
-        </div>
-      </div>
+        {/* Error State */}
+        {error && (
+          <Card className="bg-red-50 border-red-200 text-center py-12">
+            <p className="text-red-700 font-semibold text-lg">Error loading jobs: {error.message}</p>
+          </Card>
+        )}
 
-      {/* Loading */}
-      {loading && (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600"></div>
-        </div>
-      )}
+        {/* No Results State */}
+        {!loading && !error && sortedJobs.length === 0 && (
+          <Card className="text-center py-16 border-dashed border-2 border-gray-300">
+            <Briefcase size={48} className="mx-auto text-gray-400 mb-4" />
+            <h3 className="text-xl font-bold text-gray-900 mb-2">No jobs found</h3>
+            <p className="text-gray-600">Try adjusting your search criteria or filters</p>
+          </Card>
+        )}
 
-      {/* Error */}
-      {error && <p className="text-red-500 p-10 text-center bg-red-50 rounded-xl">Error: {error.message}</p>}
-
-      {/* No Results */}
-      {!loading && !error && sortedJobs.length === 0 && (
-        <p className="text-center text-slate-500 py-10 text-lg">No jobs match your search criteria. Try adjusting your filters.</p>
-      )}
-
-      {/* Jobs Grid */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {paginatedJobs.map((job) => (
-          <div key={job.id} className="group ui-glass ui-card-hover p-8 rounded-3xl flex flex-col justify-between">
-            <div>
-              {/* Header */}
-              <div className="flex justify-between items-start mb-4">
-                <div className="p-3 bg-teal-50 rounded-2xl text-teal-600 group-hover:bg-teal-500 group-hover:text-white transition-colors">
-                  <Briefcase size={24} />
-                </div>
-                <div className="text-right">
-                  <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full block mb-1">
-                    {job.status}
-                  </span>
-                  <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded-full">
-                    {job.category}
-                  </span>
-                </div>
-              </div>
-
-              {/* Title & Description */}
-              <h3 className="text-xl font-black text-slate-900 mb-2 leading-tight">{job.title}</h3>
-              <p className="text-slate-500 text-sm line-clamp-3 mb-4">{job.description}</p>
-
-              {/* Budget */}
-              <div className="flex items-center gap-2 text-slate-700 font-bold mb-6">
-                <DollarSign size={18} className="text-green-600" />
-                <span className="text-lg">${job.budget}</span>
-                <span className="text-xs text-slate-400 font-normal">(Fixed Price)</span>
-              </div>
+        {/* Jobs Grid */}
+        {!loading && !error && sortedJobs.length > 0 && (
+          <>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-12">
+              {paginatedJobs.map((job) => (
+                <JobCard
+                  key={job.id}
+                  job={job}
+                  onViewDetails={(job) => {
+                    // Navigate or open details modal
+                    window.location.href = `/job/${job.id}`;
+                  }}
+                  onApply={(job) => {
+                    // Navigate to job details for apply
+                    window.location.href = `/job/${job.id}`;
+                  }}
+                  actionLabel="View & Apply"
+                />
+              ))}
             </div>
 
-            {/* Action Button */}
-            <Link 
-              to={`/job/${job.id}`}
-              className="w-full bg-gradient-to-r from-slate-900 to-slate-700 text-white py-4 rounded-2xl font-black hover:from-teal-600 hover:to-cyan-600 transition-all active:scale-95 shadow-lg shadow-slate-200 text-center block"
-            >
-              View Details
-            </Link>
-          </div>
-        ))}
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex flex-col md:flex-row justify-between items-center gap-6 pt-8 border-t border-gray-200">
+                <Button
+                  variant={currentPage === 1 ? 'outline' : 'primary'}
+                  size="md"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(currentPage - 1)}
+                  className="flex items-center gap-2"
+                >
+                  <ChevronLeft size={18} />
+                  Previous
+                </Button>
+
+                <div className="flex gap-2 flex-wrap justify-center">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+                        page === currentPage
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                </div>
+
+                <Button
+                  variant={currentPage === totalPages ? 'outline' : 'primary'}
+                  size="md"
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(currentPage + 1)}
+                  className="flex items-center gap-2"
+                >
+                  Next
+                  <ChevronRight size={18} />
+                </Button>
+              </div>
+            )}
+          </>
+        )}
       </div>
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex justify-between items-center mt-12 pt-8 border-t border-slate-200">
-          <button
-            disabled={currentPage === 1}
-            onClick={() => setCurrentPage(currentPage - 1)}
-            className="flex items-center gap-2 px-6 py-3 bg-slate-200 text-slate-700 rounded-lg font-semibold hover:bg-slate-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-          >
-            <ChevronLeft size={20} /> Previous
-          </button>
-          
-          <div className="flex gap-2">
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-              <button
-                key={page}
-                onClick={() => setCurrentPage(page)}
-                className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-                  page === currentPage
-                    ? 'bg-teal-600 text-white'
-                    : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
-                }`}
-              >
-                {page}
-              </button>
-            ))}
-          </div>
-
-          <button
-            disabled={currentPage === totalPages}
-            onClick={() => setCurrentPage(currentPage + 1)}
-            className="flex items-center gap-2 px-6 py-3 bg-slate-200 text-slate-700 rounded-lg font-semibold hover:bg-slate-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-          >
-            Next <ChevronRight size={20} />
-          </button>
-        </div>
-      )}
     </div>
   );
 };
