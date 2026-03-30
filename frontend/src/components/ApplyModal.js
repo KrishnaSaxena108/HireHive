@@ -36,8 +36,8 @@ const ApplyModal = ({ job, isOpen, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-end bg-slate-900/60 backdrop-blur-sm">
-      <div className="bg-white/90 backdrop-blur-xl border-l border-slate-200 w-full max-w-lg h-full p-8 shadow-2xl flex flex-col animate-slide-in">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+      <div className="bg-white/95 border border-slate-200 w-full max-w-md max-h-[80vh] p-6 shadow-2xl flex flex-col overflow-auto rounded-2xl">
         <div className="flex justify-between items-center mb-8">
           <h2 className="text-2xl font-black text-slate-900">Submit Proposal</h2>
           <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full transition">
@@ -68,7 +68,7 @@ const ApplyModal = ({ job, isOpen, onClose }) => {
             <label className="block text-sm font-bold text-slate-700 mb-2">Cover Letter</label>
             <textarea 
               required placeholder="Explain why you are the best fit for this project..."
-              className="w-full p-4 h-64 rounded-xl border border-slate-200 bg-white/90 focus:ring-4 focus:ring-teal-100 focus:border-teal-600 outline-none transition-all"
+              className="w-full p-3 h-40 rounded-xl border border-slate-200 bg-white/90 focus:ring-4 focus:ring-teal-100 focus:border-teal-600 outline-none transition-all"
               onChange={(e) => setFormData({...formData, coverLetter: e.target.value})}
             />
           </div>
