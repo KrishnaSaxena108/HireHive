@@ -39,7 +39,7 @@ const PostJob = () => {
   const [createJob, { loading, error }] = useMutation(CREATE_JOB, {
     onCompleted: () => {
       alert("Project Launched Successfully! 🚀");
-      navigate('/browse'); // Redirect to the feed to see it live
+      navigate('/client-dashboard'); // Redirect client to their dashboard after posting
     },
     onError: (err) => alert(`Launch Failed: ${err.message}`)
   });

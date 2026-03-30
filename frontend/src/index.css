@@ -108,8 +108,10 @@ a:focus-visible {
 }
 
 .app-content {
-	position: relative;
-	z-index: 1;
+		position: relative;
+		z-index: 1;
+		@apply flex-1;
+		padding-top: 92px; /* account for fixed navbar height */
 }
 
 .route-fade {
