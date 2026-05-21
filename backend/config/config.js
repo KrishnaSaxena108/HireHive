@@ -10,6 +10,14 @@ module.exports = {
     host: "127.0.0.1",
     dialect: "mysql",
     logging: console.log
+  },
+  test: {
+    username: "root",
+    password: process.env.DB_PASS || null,
+    database: "freelance_db",
+    host: "127.0.0.1",
+    dialect: "mysql",
+    logging: false
   }
   // ... test and production as before
 };

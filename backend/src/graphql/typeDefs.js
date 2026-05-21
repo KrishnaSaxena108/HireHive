@@ -115,6 +115,7 @@ const typeDefs = gql`
     # --- Auth (#6, #7) ---
     register(username: String!, email: String!, password: String!, role: String!): AuthPayload
     login(email: String!, password: String!): AuthPayload
+    googleAuth(email: String!, username: String): AuthPayload
     
     # --- Profile (#10) ---
     updateProfile(bio: String, skills: String, hourlyRate: Float, category: String): Profile

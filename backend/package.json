@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest --runInBand",
+    "test:watch": "jest --watch",
     "dev": "nodemon src/server.js",
     "start": "node src/server.js"
   },
@@ -33,7 +34,7 @@
     "socket.io": "^4.8.3"
   },
   "devDependencies": {
-    "apollo-server-testing": "^2.25.3",
+    "jest": "^30.0.5",
     "nodemon": "^3.1.14",
     "sequelize-cli": "^6.6.5"
   }

@@ -3,10 +3,11 @@ import { Navigate } from 'react-router-dom';
 
 const ProtectedRoute = ({ element, requiredRole = null }) => {
   const token = localStorage.getItem('token');
+  const firebaseToken = localStorage.getItem('firebaseToken');
   const userRole = localStorage.getItem('userRole');
 
   // Not authenticated - redirect to login
-  if (!token) {
+  if (!token && !firebaseToken) {
     return <Navigate to="/login" replace />;
   }
 
